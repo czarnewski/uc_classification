@@ -1,0 +1,25 @@
+name: uc_classification
+
+channels:
+ - bioconda
+ - conda-forge
+ - defaults
+
+dependencies:
+ - bioconductor-biomart=2.38
+ - bioconductor-sva=3.30
+ - bioconductor-edger=3.26
+ - bioconductor-limma=3.38
+ - r-base=3.5
+ - r-base=3.5
+ - r-biocmanager=1.30
+ - r-data.table=1.11
+ - r-dplyr=0.8
+ - r-fields=9.6
+ - r-optparse=1.6
+ - r-pheatmap=1.0
+ - r-rafalib=1.0
+ - r-rcolorbrewer=1.1
+ - r-scales=1.0
+ - r-vegan=2.5
+ - bioconductor-edger

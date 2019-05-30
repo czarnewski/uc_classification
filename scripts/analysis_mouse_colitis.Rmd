@@ -1,0 +1,444 @@
+---
+title: "RNAseq mouse DSS colitis"
+subtitle: "Czarnewski et al 2019"
+author: "Paulo Czarnewski"
+date: "30 May 2019"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    toc_depth: 4
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    self_contained: false
+    keep_md: false
+editor_options: 
+  chunk_output_type: console
+---
+
+
+# Loading packages and data
+```{r,echo=TRUE}
+source("./support_functions.R")
+
+inst_packages(c("readxl","data.table","preprocessCore","biomaRt","riverplot","sva","RColorBrewer","rafalib","edgeR","EDASeq","RUVSeq","pheatmap","enrichR","GOsummaries"))
+```
+
+
+# Loading the count and metadata
+```{r, echo=TRUE}
+#Load phenotypic data
+phenoData <- read_excel("../data/metadata_mouse.xlsx",col_names=TRUE)
+phenoData <- data.frame(phenoData, row.names = phenoData$SampleName)
+
+#Load gene expression table and change the sampleIDs to the respective sample names
+RawData <- read.csv("../data/kallisto_counts_mouse.csv",row.names = 1)
+colnames(RawData) <- phenoData$SampleName[ match(colnames(RawData), phenoData$SampleID) ]
+dim(RawData)
+head(RawData)
+```
+
+***
+# Filter genes based on the counts and biotype
+```{r, echo=TRUE, fig.height= 3.3,fig.width=6.6}
+#Filter out genes expressed in 10% of the samples (with the number of reads above the threshold of 5). Next, sort the gene names in alphabetical order.
+filter <- apply(RawData,1,function(x) sum( x >= 5 ) >= round(ncol(RawData)*.1) )
+RawData <- RawData[filter,]
+dim(RawData)
+
+#Filter out mitocondrial genes or those that do NOT belong to "protein-coding" or "long non-coding RNA"
+RawData <- RawData[grep("mt-",rownames(RawData),invert = T),]
+
+#Filter out gene that do NOT belong to "protein-coding"
+ensembl <- useMart("ensembl", dataset="mmusculus_gene_ensembl")
+#listAttributes(ensembl)$name[grep("typ",listAttributes(ensembl)$name)]
+annot <- getBM(c("mgi_symbol","gene_biotype","transcript_biotype"), mart=ensembl)
+mypar(1,2)
+gene_biotype <- sort(table(annot[annot[,1] %in% rownames(RawData),2])/dim(RawData)[1]*100,decreasing = T)
+pie(gene_biotype,clockwise = T,main = "before\nfiltering",col = colorRampPalette(c("grey95","firebrick"))((max(round(gene_biotype,0))+1))[round(gene_biotype,0)+1])
+select <- annot[(annot[,2] %in% c("protein_coding")) & (annot[,3] %in% c("protein_coding")),]
+RawData <- RawData[select[select[,1] %in% rownames(RawData),1],]
+gene_biotype_filtered <- sort(table(select[select[,1] %in% rownames(RawData),2])/dim(RawData)[1]*100,decreasing = T)
+pie(gene_biotype_filtered,clockwise = T,main = "after\nfiltered",col = colorRampPalette(c("grey95","firebrick"))((max(round(gene_biotype_filtered,0))+1))[round(gene_biotype_filtered,0)+1])
+RawData <- RawData[order(rownames(RawData)),]
+dim(RawData)
+
+#Create expression set
+set <- newSeqExpressionSet(round(as.matrix(RawData),0),phenoData = phenoData)
+set <- betweenLaneNormalization(set, which="upper")
+
+Group <- factor(pData(set)$Group)
+```
+
+***
+# Finding genes that correlate well to library sizes
+
+Since the expected number of cells and the tissue composition is expected to change during mouse colitis, where higher number of cells and thus also 'housekeeping' genes. We correlated each gene log expression with the library sizes. Below we visalize commonly used 'housekeeping' genes.
+
+```{r,echo=TRUE,fig.height= 8,fig.width=10}
+mypar(5,6)
+library.size <- log2(colSums(counts(set)))
+for(i in c("Rpl37","Slc25a3","Actb","Nme4","Pnp","Pole4","Prdx3","Cpped1","Hprt","Gapdh","Cd63","Trappc3")){
+plot(log2(counts(set)+1)[i,],library.size,main=paste(i,round(cor(log2(counts(set)+1)[i,],library.size),2)),col=paste0(colorRampPalette(c("grey60",2,3))(10),"90")[factor(pData(set)$Day)],pch=16,las=1,xlab="log(counts+1)",ylab="library size")
+model <- lm(library.size~log2(counts(set)+1)[i,])
+abline(model,col="red")
+
+plot(pData(set)$Day+rnorm(length(Group))/10,log2(counts(set)+1)[i,],main=i,col=paste0(colorRampPalette(c("grey60",2,3))(10),"90")[factor(pData(set)$Day)],pch=16,xlab="days",ylab="log(counts+1)",las=1)
+points(smooth.spline(log2(counts(set)+1)[i,],x = as.numeric(pData(set)$Day),spar = .4),pch=16)
+lines(smooth.spline(log2(counts(set)+1)[i,],x = as.numeric(pData(set)$Day),spar = .4),lwd=2)
+}
+```
+
+
+# Plot gene correlation to library sizes
+
+```{r,echo=TRUE,fig.height= 3.3,fig.width=3.3}
+#Identifying genes that are highly correlated to the total sample counts (housekeeping)
+mypar(1,1)
+a <- apply(log2(counts(set)+1),1,function(x){ cor.test(x,library.size)$p.value })
+b <- apply(log2(counts(set)+1),1,function(x){ cor(x,library.size) })
+
+plot(b,-log10(p.adjust(a)),col=ifelse(b > .9,"red","black"),xlab="cor. R",ylab="cor. -log10(FDR)",xlim=c(-1,1),las=1)
+abline(v=.9,lty=2,col="grey")
+housekeeping <- na.omit(names(b)[b > .9])
+```
+
+
+***
+# Estimating unwanted variation from 'housekeeping' genes using RUVseq
+
+```{r,echo=TRUE,fig.height= 6,fig.width=10}
+k <- 2
+set1 <- RUVg(set, housekeeping, k=k)
+design <- model.matrix(~ Group + W_1 + W_2 , data=pData(set1))
+```
+
+
+# Computing differentilaly expressed genes using EdgeR
+
+```{r,echo=TRUE,fig.height= 6,fig.width=10}
+y <- DGEList(counts=counts(set1), group=Group,remove.zeros = T)
+y <- calcNormFactors(y,method = "TMM")
+y <- estimateGLMCommonDisp(y,design)
+y <- estimateGLMTagwiseDisp(y,design)
+fit <- glmFit(y, design)
+lrt <- glmLRT(fit,coef = 2:length(unique(Group)))
+top <- topTags(lrt,adjust.method = "BH",n = "all",sort.by = "p.value")[[1]]
+colnames(top) <- sub("Groupday","d",colnames(top))
+normcounts <- cpm(y, log = T, prior.count = 1, normalized.lib.sizes = T)
+
+mypar(2,3)
+plotBCV(y,ylim=c(0,0.8),yaxs="i",las=1,xlim=c(-3,13),ylab="BCV")
+
+hist(top$PValue,las=1,col=c("orange",rep("grey",19)),breaks=20,main="hist. p.values",xlab="p-values")
+hist(top$FDR,las=1,col=c("orange",rep("grey",19)),breaks=20,main="hist. FDR",xlab="FDR")
+
+plot(top$logCPM,rowMeans(top[,grep("logFC",colnames(top))]),ylim=c(-8,8),xlim=c(-3,13),pch=16,cex=.3,xaxs="i",yaxs="i",las=1,ylab="logFC",xlab="Average logCPM")
+abline(h=c(-.6,.6),col="red",lwd=2)
+plot(top$logCPM,-log10(top$FDR),ylim=c(0,40),xlim=c(-3,13),pch=16,cex=.3,xaxs="i",yaxs="i",las=1,ylab="-log10(FDR)",xlab="Average logCPM")
+```
+
+
+***
+# Define  differentially expressed genes
+
+Genes with effect size above 1.5 (fold change) and p-value below 0.05 were considered significant.
+
+```{r}
+#Define the filter for logFC
+logFCthreshold <- log(1.5,2)
+logFCfilter <- apply(top[,grep("logFC",colnames(top))],1,function(x){ sum( abs(x) > logFCthreshold) >= 1 })
+
+#Define filter for FDR value
+FDRthreshhold <- 0.05
+FDRfilter <- top$FDR < FDRthreshhold
+
+DEgenes <- top[logFCfilter & FDRfilter,]
+dim(DEgenes)
+```
+
+
+Since we used the gene annotation from BiomaRt in our code, it is likely that the list of differentially expressed genes might slightly vary depending on the updates in the ENSEMBL database. For this reason, we also provided the list of genes obtained during our initial anlaysis in order to produce the exact same figures in the paper.
+
+```{r,echo=F}
+normcounts <- read.csv("../data/normcounts.csv",row.names = 1)
+DEgenes <- read.csv("../data/DEgenes.csv",row.names = 1)
+```
+
+***
+# Generate smoothed spline curves from logFC
+
+```{r}
+s_logFC <- t(apply(cbind(0,DEgenes[,grep("logFC",colnames(top))]),1,function(x){
+                x <- smooth.spline(unique(pData(set)$Day),x,spar = .4)$y} ))
+colnames(s_logFC) <- paste0("day",unique(pData(set)$Day))
+s_logFC <- s_logFC[,] - s_logFC[,1]
+head(s_logFC,20)
+
+
+#Normalize expression to range from 0 to 1 (to facilitate ploting)
+n_s_logFC <- (s_logFC - min(s_logFC) ) / (max(s_logFC) - min(s_logFC))
+n_s_logFC <- t(apply(s_logFC,1,function(x){(x - min(x) ) / (max(x) - min(x))}))
+head(s_logFC)
+head(n_s_logFC)
+```
+
+***
+# Perform hierachical clustering on the data
+```{r,fig.height= 5,fig.width=6}
+mypallete2 <- c(brewer.pal(n = 8,name = "Set2"),brewer.pal(n = 9,name = "Set1"))
+
+geneDistance <- as.dist((1 - cor(t( n_s_logFC ))^3)/2)
+geneCluster = hclust(geneDistance,method="ward.D2")
+
+par(mar=c(4,4,4,4),mfrow=c(1,1))
+
+height_cut <- 4.5
+groups <- cutree(geneCluster,h=height_cut)
+unique(groups)
+myplclust(geneCluster, labels=groups, lab.col=mypallete2[as.numeric(groups)])
+abline( h=height_cut, col="red", lwd=0.5)
+
+#Re-order clusters based on their respective temporal peak of expression
+peak_order <- c()
+for (i in unique(groups)){
+  avg_curve <- as.numeric(colMeans(s_logFC[groups==i,]))
+  names(avg_curve) <- as.numeric(sub("day","",colnames(s_logFC)))
+  avg_curve <- as.numeric(names(sort(avg_curve,decreasing = T)))
+  peak_order <- rbind(peak_order,c(
+    avg_curve[1], avg_curve[2], avg_curve[3], avg_curve[4]))}
+peak_order <- data.frame(peak_order,row.names = unique(groups))
+peak_order <- peak_order[order( rowSums(peak_order[,1:4]!=0),peak_order[,1], peak_order[,2],peak_order[,3],peak_order[,4]),]
+group_order <- cbind("peak_order"=as.numeric(rownames(peak_order)),"groups"=unique(groups))
+```
+
+***
+# Plot heatmaps using Z-score nomalized clustered data
+```{r,fig.height= 5,fig.width=4}
+ann_groups <- data.frame(ann_groups=paste0("cluster",groups),row.names=names(groups))
+tag_colors <- mypallete2[1:max(groups)]; names(tag_colors) <- unique(ann_groups)[[1]]
+
+pheatmap(n_s_logFC[order(order(as.numeric(group_order[,1]))[groups]),], cluster_rows=F,cluster_cols=FALSE, scale="none", fontsize_row=1, fontsize_col=8, col= colorRampPalette(c("navy","grey95", "firebrick3"))(50), treeheight_row = 100,annotation_row = as.data.frame(ann_groups), annotation_colors =  list(ann_groups = tag_colors),border_color = NA,height = 8,width = 6,gaps_row = sort(rep(cumsum(table(groups)[as.numeric(group_order[,1])]),1)),breaks = seq(-.5,1.5,length.out = 50))
+```
+
+***
+# Plot cluster means
+```{r, echo=T, fig.height= 5,fig.width=10}
+par(mar=c(1,1,1,1),mfrow=c(3,3))
+for (i in as.numeric(group_order[,1])){
+  #cluster_data <- dataset_norm[groups==i,]
+  #avg_curve <- smooth.spline(pData(set)$Day, colMeans(cluster_data)-mean(colMeans(cluster_data)[pData(set)$Day==0]), spar=0.3)
+  #avg_curve <- list(y=colMeans(n_s_logFC[groups==i,]))
+  avg_curve <- spline(x = as.numeric(sub("day","",colnames(n_s_logFC))),y=colMeans(n_s_logFC[groups==i,]))
+  #avg_curve$x <- as.numeric(sub("day","",colnames(n_s_logFC)))
+  plot(2,2,xlim=c(0,14),ylim=c(min(avg_curve$y/max(abs(avg_curve$y))), max(avg_curve$y/max(abs(avg_curve$y)))  ),type = "n",ylab = "expression\nlevel",xlab=" ",cex.lab=1,yaxt="n",xaxt="n",yaxs="i",xaxs="i")
+  legend("topright", paste0("Cluster ",i), bty="n")
+  lines(avg_curve$x, avg_curve$y/max(abs(avg_curve$y)), col=mypallete2[i], lwd=2)
+  polygon(c(0,avg_curve$x,14),c(min(avg_curve$y/max(abs(avg_curve$y))),avg_curve$y/max(abs(avg_curve$y)),min(avg_curve$y/max(abs(avg_curve$y)))),col = paste0(colorRampPalette(mypallete2[i])(1),30),border = NA)
+}
+```
+
+***
+# Plotting the top 30 most significant genes for each cluster, sorted by p-value
+
+```{r, echo=T, fig.height= 6,fig.width=10}
+pallete2 <- c(brewer.pal(8,"Set2"),brewer.pal(9,"Set1"))
+n <- 30
+mypar(2,5,mar=c(2,4,2,0))
+for(i in 1:max(groups)){
+  temp <- rownames(DEgenes)[groups == i]
+  top_clust <- -log(sort(as.matrix(DEgenes)[temp,"FDR"]),10)[1:n]
+  barplot(top_clust[n:1],horiz=T,xaxs="i",yaxs="i",border=NA,las=1,col=pallete2[i],xlim=c(0,max(top_clust[n:1])*1.5),main=paste0("module",i))
+  abline(v=0,lwd=2);abline(v=2,lty=2)}
+```
+
+
+***
+# Idetifying leading genes responsible for changes in Principal components
+```{r, echo=T, fig.height= 3.5,fig.width=10}
+#PERFORM PCA ON DEgenes AND CACLULATE %VARIANCE EXPLAINED
+pca = prcomp(t(normcounts[rownames(DEgenes),]))
+percent <- pca$sdev^2/sum(pca$sdev^2)*100
+labs <- sapply(seq_along(percent), function(i) {paste("PC ", i, " (", round(percent[i], 1), "%)", sep="")})
+
+#PLOT VARIANCE EXPLAINED USING BARPLOTS AND PIE CHART
+par(mar=c(6,4,4,2),mfrow=c(1,3))
+barplot(percent,names.arg=colnames(pca$x),las=2,xaxs="i",ylim=c(0,round(max(percent)*1.2,0)),ylab="% variance explained",main = "Variance explained by\neach Principal Component",col=colorRampPalette(c("grey85","red"))(max(round(percent,0))*1.5)[round(percent,0)+1],xpd=F,border=NA)
+abline(h=c(0,5),lty=c(1,2),lwd=c(3,1))
+pie(percent,labels = colnames(pca$x),col = colorRampPalette(c("grey85","Red"))(max(round(percent,0))*1.5)[round(percent,0)+1],clockwise = T,border = "white",main = "Variance explained by\neach Principal Component")
+
+#PLOT PRINCIPAL COMPONENTS
+pca$x <- scale(pca$x, center=T,scale = T)
+plot(pca$x[,1], pca$x[,2], xlab=labs[1], ylab=labs[2], las=1, xlim=c(-1.9,2.2), ylim=c(-2.3,2.5), cex.main=0.8,main="",type="n")
+points(pca$x[,1], pca$x[,2], pch=20, cex=4, col=paste0(colorRampPalette(c("grey60",2,3))(length(unique(pData(set)$Day))),"95")[factor(pData(set)$Day)])
+sx <- spline(smooth.spline(1:nrow(pca$x), pca$x[,1],spar = 0.4,tol=2))
+sy <- spline(smooth.spline(1:nrow(pca$x), pca$x[,2],spar = 0.4,tol=2))
+lines(sx[[2]], sy[[2]], col = 2, lwd = 2)
+text(pca$x[,1], pca$x[,2], pData(set)$Day, pch=20, cex=1, col="black",tck=-.05)
+
+#plotPCA(set, labels=FALSE, bg=pData(set)$Color, cex=2, main=paste0("PCA"),xlim=c(-0.6,0.6),ylim=c(-0.6,0.6),las=1,cex.main=0.8,pch=21)
+
+#------------------------------------------------------------------------------
+```
+
+***
+# Plot Principal components relative to the days of DSS
+```{r, echo=T, fig.height= 3.5,fig.width=8}
+par(mar=c(2,2,2,1),mfrow=c(2,3))
+for (i in 1:6){
+  plot(pData(set)$Day,pca$x[,i],bg="grey",pch=21,ylim=c(-3,3),main=labs[i],xlab="",ylab="",xaxt="n",las=1)
+  myline <- smooth.spline(pData(set)$Day,pca$x[,i], spar=0.4)$y
+  lines(unique(pData(set)$Day),myline,col="blue",lwd=3)
+  abline(h=c(mean(pca$x[pData(set)$Day==0,i])),col="red")
+}; mypar()
+
+
+#Identify the gene loads that contribute to a specific PC
+leading <- pca$rotation
+par(mar=c(2,10,2,0),mfrow=c(1,5))
+for (i in 1:5){
+#rownames(head(leading[order(abs(leading[,1]), decreasing = T),],50)) #plot the leading scores for each gene for the # PC
+x <- abs(leading[,i])[order(abs(leading[,i]), decreasing = T)]
+#model <- lm( c(x[round(length(x)/10):round(length(x)*4/10)]) ~ c(round(length(x)/10):round(length(x)*4/10)) )
+#model$coefficients[1]
+#plot(1:length(x),x, las=2); abline(h=model$coefficients[1],v=c(round(length(x)/10),round(length(x)*4/10)))
+#barplot(x[20:1],las=1,horiz=T,col=colorRampPalette(c("grey95","grey95","firebrick3"))(round((max(x[20:1])-min(x))*1000,0)+1)[round((x[20:1]-min(x))*1000)+1],main=paste0("PC",i),xlim=c(0,max(x[40:1]*1.2)),line=0,border=F)
+barplot(x[30:1],las=1,horiz=T,col=mypallete2[groups[names(x[30:1])]],main=paste0("PC",i),xlim=c(0,max(x[40:1]*1.2)),border=F,cex.axis=1.5,cex.names=1.5,xaxs="i",yaxs="i")
+abline(v=0,lwd=2)
+}
+```
+
+***
+# Identify which gene modules impact th most in the variance for each Principal Component
+
+```{r, results='hide'}
+cluster_contribution <- c()
+for(i in 1:max(groups)){
+  for(j in 1:ncol(pca$x)){
+    cluster_contribution <- c(cluster_contribution, sum(abs(leading)[rownames(DEgenes)[groups==i],j]*percent[j] ))}}
+cluster_contribution_matrix <- matrix(cluster_contribution, nrow=ncol(pca$x), dimnames = list(c(paste0("PC",ifelse(1:ncol(pca$x)<=9,"0",""),1:ncol(pca$x))),c(paste0("Cluster",ifelse(1:max(groups)<=9,"0",""),1:max(groups)))))
+
+top_PCs <- 5
+
+#Creating visualization plot Sankey Diagram
+a <- sort(colSums(cluster_contribution_matrix[1:top_PCs,]))
+a2 <- sort(cumsum(a/sum(a)),decreasing = T)
+
+b <- sort(rowSums(cluster_contribution_matrix[1:top_PCs,]))
+b2 <- sort(cumsum(b/sum(b)),decreasing = T)
+
+nodes = data.frame(ID = c(names(b2), names(a2)), stringsAsFactors = FALSE)
+nodes$x = c(rep(2,length(b)),rep(1,length(a)))
+nodes$y = c((b2+c(b2[2:length(b2)],0))/2 , (a2+c(a2[2:length(a2)],0))/2)
+rownames(nodes) = c(names(b2), names(a2))
+
+edges <- data.frame(N1 = rownames(cluster_contribution_matrix[1:top_PCs,]),
+                    N2 = sort(rep(colnames(cluster_contribution_matrix[1:top_PCs,]),top_PCs)),
+                    Value = c(cluster_contribution_matrix[1:top_PCs,]) /sum(c(cluster_contribution_matrix[1:top_PCs,])))
+edges <- edges[order(edges[,3]),]
+
+palette = c(paste0(brewer.pal(9, "Set1"), "60"), paste0(brewer.pal(8, "Set2"), "60") )
+palette = paste0(colorRampPalette(c("grey85","red"))(101),"60")
+styles <- lapply(nodes$y[1:top_PCs], function(n) {
+  list(col = palette[(n*10)^2+1],lty = 0, textcol = "black",srt=0)
+})
+styles <- c( styles, lapply(as.numeric(sub("Cluster","",names(a2))), function(n) {
+  list(col = mypallete2[n],lty = 0, textcol = "black",srt=0)
+}))
+names(styles) = nodes$ID
+
+
+rp <- list(nodes = nodes, edges = edges, styles = styles)
+class(rp) <- c(class(rp), "riverplot")
+mypar()
+plot(rp, plot_area = 0.95, yscale=0.95,line=1)
+```
+
+
+# GO and KEGG enrichment using EnrichR for each cluster (v. 2016)
+```{r,echo=TRUE,echo=TRUE, include=T, results='hold', fig.height = 4.5,tidy=T,fig.align='center',fig.show='hold'}
+#define variables
+wc_go = list()
+wc_kegg = list()
+wc_TF = list()
+pvalue_cutoff <- 0.05
+no_genes_cutoff <- 3
+for (i in sort(unique(groups))){
+  cluster_genes <- rownames(DEgenes)[groups == i]
+  
+  a <- enrichr(genes=cluster_genes, databases = "GO_Biological_Process_2017")[[1]]
+  a <- a[order(a$Combined.Score,decreasing = T),]
+  #remove terms with p-values > pvalue_cutoff and number of genes < no_genes_cutoff
+  a <- a[a$P.value < pvalue_cutoff & as.numeric(sapply(strsplit(a[,"Overlap"],"/"),"[[", 1)) >= no_genes_cutoff,]
+  #remove terms with "positive/negative regulation"
+  a <- a[grep("regulation",a$Term,invert = T),]
+  if (nrow(a) > 20) { a <- a[order(a$Combined.Score,decreasing = T),][1:20,] }
+  wc_go[[paste0("Cluster",i)]] <- data.frame(Term = sapply(strsplit(a[,"Term"]," [(]GO:"),"[[", 1), Score = a$P.value)
+
+  b <- enrichr(genes=cluster_genes, databases = "KEGG_2016")[[1]]
+  b <- b[order(b$Combined.Score,decreasing = T),]
+  b <- b[grep("_hsa05",b$Term,invert = T),]   #Remove disease-related KEGG pathways ("hsa05"")
+  b <- b[b$P.value < pvalue_cutoff & as.numeric(sapply(strsplit(b[,"Overlap"],"/"),"[[", 1)) >= no_genes_cutoff,]
+  if (nrow(b) > 20) { b <- b[order(b$Combined.Score,decreasing = T),][1:20,] }
+  wc_kegg[[paste0("Cluster",i)]] <- data.frame(Term = sapply(strsplit(b[,"Term"],"_"),"[[", 1), Score = b$P.value)
+}
+
+gs_go = gosummaries(wc_data = wc_go[paste0("Cluster",group_order[,1])], wc_algorithm = "top", score_type = "p-value")
+
+gs_kegg = gosummaries(wc_data = wc_kegg[paste0("Cluster",group_order[,1])], wc_algorithm = "top",score_type = "p-value")
+```
+
+
+# Plotting enrichment for each cluster
+
+```{r,echo=TRUE,echo=TRUE, include=T, results='hold', fig.height= 6,fig.width=10, fig.align='center',fig.show='hold'}
+message("GO enrichment")
+mypar(mar=c(2,22,1,1),mfrow=c(5,2))
+for (i in as.numeric(group_order[,1])){
+  if(dim(wc_go[[i]])[1]<5){n <- dim(wc_go[[i]])[1]}else{n<-5}
+barplot(-log(wc_go[[i]][n:1,2],10),names.arg=wc_go[[i]][n:1,1],horiz=T,las=1,col=mypallete2[i], main=paste0("module",i),xlab=" ",xlim=c(0,max(-log(wc_go[[i]][n:1,2],10))*1.2),tck=-.05,border=NA,cex.axis=1.5,cex.names=1.5)
+}
+message("KEGG enrichment")
+mypar(mar=c(2,22,1,1),mfrow=c(5,2))
+for (i in as.numeric(group_order[,1])){
+  if(dim(wc_kegg[[i]])[1]<5){n <- dim(wc_kegg[[i]])[1]}else{n<-5}
+barplot(-log(wc_kegg[[i]][n:1,2],10),names.arg=wc_kegg[[i]][n:1,1],horiz=T,las=1,col=mypallete2[i],main=paste0("module",i),xlab=" ",xlim=c(0,max(-log(wc_kegg[[i]][n:1,2],10))*1.2),tck=-.05,border=NA,cex.axis=1.5,cex.names=1.5)
+}
+```
+
+
+
+
+# Ploting a heatmap with a list of IBD-risk genes
+
+```{r, eval=F, echo=F}
+gene_list <- read_xlsx("/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/GeneLists/nature22969-s2.xlsx",sheet = 3)
+disease <- gene_list$trait.reassigned
+disease <- disease != "CD"
+list <- gene_list$Gene[!is.na(gene_list$Gene[disease])]
+list <- unique(unlist(strsplit(list,split = ",")))
+
+homologs <- fread('http://www.informatics.jax.org/downloads/reports/HMD_HumanPhenotype.rpt')
+homologs <- data.frame("human"=homologs$V1,"mouse"=homologs$V5)
+homologs <- homologs[homologs[,1] %in% list,]
+mouse <- as.vector(homologs[,2]); length(mouse)
+in_common <- rownames(DEgenes) %in% mouse ; sum(in_common)
+
+ann_groups_list <- data.frame(ann_groups=paste0("cluster",groups[in_common]),row.names=names(groups[in_common]))
+tag_colors_list <- mypallete2[min(groups[in_common]):max(groups[in_common])]; names(tag_colors_list) <- unique(ann_groups_list)[[1]]
+
+pheatmap(n_s_logFC[in_common,][order(order(as.numeric(group_order[,1]))[groups[in_common]]),], cluster_rows=F,cluster_cols=FALSE, scale="none", fontsize_row=12, fontsize_col=12, col= colorRampPalette(c("navy", "grey95", "firebrick3"))(50), treeheight_row = 100,annotation_row = as.data.frame(ann_groups_list), annotation_colors =  list(ann_groups = tag_colors_list),border_color = NA,breaks = seq(-.5,1.5,length.out = 50))
+```
+
+
+
+
+
+
+
+
+
+
+

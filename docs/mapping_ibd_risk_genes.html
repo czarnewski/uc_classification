@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Paulo Czarnewski" />
+
+<meta name="date" content="2019-05-30" />
+
+<title>Mapping IBD risk genes to mouse colitis</title>
+
+<script src="mapping_ibd_risk_genes_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="mapping_ibd_risk_genes_files/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="mapping_ibd_risk_genes_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="mapping_ibd_risk_genes_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="mapping_ibd_risk_genes_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="mapping_ibd_risk_genes_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="mapping_ibd_risk_genes_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="mapping_ibd_risk_genes_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="mapping_ibd_risk_genes_files/navigation-1.1/tabsets.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #f8f8f8; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+pre, code { background-color: #f8f8f8; }
+code > span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code > span.dt { color: #204a87; } /* DataType */
+code > span.dv { color: #0000cf; } /* DecVal */
+code > span.bn { color: #0000cf; } /* BaseN */
+code > span.fl { color: #0000cf; } /* Float */
+code > span.ch { color: #4e9a06; } /* Char */
+code > span.st { color: #4e9a06; } /* String */
+code > span.co { color: #8f5902; font-style: italic; } /* Comment */
+code > span.ot { color: #8f5902; } /* Other */
+code > span.al { color: #ef2929; } /* Alert */
+code > span.fu { color: #000000; } /* Function */
+code > span.er { color: #a40000; font-weight: bold; } /* Error */
+code > span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #000000; } /* Constant */
+code > span.sc { color: #000000; } /* SpecialChar */
+code > span.vs { color: #4e9a06; } /* VerbatimString */
+code > span.ss { color: #4e9a06; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #000000; } /* Variable */
+code > span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code > span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code > span.ex { } /* Extension */
+code > span.at { color: #c4a000; } /* Attribute */
+code > span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code > span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Mapping IBD risk genes to mouse colitis</h1>
+<h3 class="subtitle">Czarnewski et al 2019</h3>
+<h4 class="author">Paulo Czarnewski</h4>
+<h4 class="date">30 May 2019</h4>
+
+</div>
+
+
+<div id="load-packages" class="section level1">
+<h1><span class="header-section-number">1</span> Load Packages</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Installing required packages</span>
+<span class="kw">source</span>(<span class="st">&quot;./support_functions.R&quot;</span>)
+<span class="kw">inst_packages</span>(<span class="kw">c</span>(<span class="st">&quot;readxl&quot;</span>,<span class="st">&quot;data.table&quot;</span>,<span class="st">&quot;biomaRt&quot;</span>,<span class="st">&quot;RColorBrewer&quot;</span>,<span class="st">&quot;rafalib&quot;</span>,<span class="st">&quot;enrichR&quot;</span>,<span class="st">&quot;venn&quot;</span>,<span class="st">&quot;pheatmap&quot;</span>))</code></pre></div>
+<pre><code>##              Pkg_Status
+## readxl             TRUE
+## data.table         TRUE
+## biomaRt            TRUE
+## RColorBrewer       TRUE
+## rafalib            TRUE
+## enrichR            TRUE
+## venn               TRUE
+## pheatmap           TRUE</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Defining color paletes</span>
+palete &lt;-<span class="st"> </span>RColorBrewer<span class="op">::</span><span class="kw">brewer.pal</span>(<span class="dv">8</span>,<span class="st">&quot;Set2&quot;</span>)
+mypalette2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">brewer.pal</span>(<span class="dt">n =</span> <span class="dv">8</span>,<span class="dt">name =</span> <span class="st">&quot;Set2&quot;</span>),<span class="kw">brewer.pal</span>(<span class="dt">n =</span> <span class="dv">9</span>,<span class="dt">name =</span> <span class="st">&quot;Set1&quot;</span>))</code></pre></div>
+<hr />
+</div>
+<div id="loading-human-dataset" class="section level1">
+<h1><span class="header-section-number">2</span> Loading Human dataset</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">IBD_GWAS &lt;-<span class="st"> </span><span class="kw">read_xlsx</span>(<span class="st">&quot;/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/GeneLists/nature22969-s2.xlsx&quot;</span>,<span class="dt">sheet =</span> <span class="dv">3</span>)
+IBD_genes &lt;-<span class="st"> </span>IBD_GWAS<span class="op">$</span>Gene[<span class="op">!</span><span class="kw">is.na</span>(IBD_GWAS<span class="op">$</span>Gene)]
+IBD_genes &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">unlist</span>(<span class="kw">strsplit</span>(IBD_genes,<span class="dt">split =</span> <span class="st">&quot;[,.;]&quot;</span>)))
+
+disease &lt;-<span class="st"> </span>IBD_GWAS<span class="op">$</span>trait.reassigned[<span class="op">!</span><span class="kw">is.na</span>(IBD_GWAS<span class="op">$</span>Gene)]
+UC_risk_genes &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">unlist</span>(<span class="kw">strsplit</span>(IBD_genes[disease <span class="op">!=</span><span class="st"> &quot;CD&quot;</span>],<span class="dt">split =</span> <span class="st">&quot;[,.;]&quot;</span>)))
+CD_risk_genes &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">unlist</span>(<span class="kw">strsplit</span>(IBD_genes[disease <span class="op">!=</span><span class="st"> &quot;UC&quot;</span>],<span class="dt">split =</span> <span class="st">&quot;[,.;]&quot;</span>)))</code></pre></div>
+</div>
+<div id="loading-mouse-human-homologs" class="section level1">
+<h1><span class="header-section-number">3</span> Loading Mouse-human homologs</h1>
+<p>Since we used the gene annotation from JAX in part of the anlaysis, it is likely that the list of differentially expressed genes might slightly vary depending on the updates in their database. For this reason, we also provided the list of genes obtained during our initial anlaysis in order to produce the exact same figures as in the paper.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#A list of homolog genes can be found in:</span>
+<span class="co">#homologs &lt;- fread(&#39;http://www.informatics.jax.org/downloads/reports/HMD_HumanPhenotype.rpt&#39;)</span>
+<span class="co">#homologs &lt;- data.frame(&quot;mouse&quot;=homologs$V5,&quot;human&quot;=homologs$V1)</span>
+
+<span class="co">#Load the homolog gene list version downloaded in 2018-06-15 used in the paper.</span>
+homologs &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/homologs.csv&quot;</span>,<span class="dt">row.names =</span> <span class="dv">1</span>)
+<span class="kw">head</span>(homologs)</code></pre></div>
+</div>
+<div id="loading-mouse-dataset" class="section level1">
+<h1><span class="header-section-number">4</span> Loading Mouse dataset</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Loading mouse data</span>
+mouse_DEgenes &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/DEgenes.csv&quot;</span>,<span class="dt">header =</span> T,<span class="dt">row.names =</span> <span class="dv">1</span>)
+mouse_modules &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/gene_modules.csv&quot;</span>,<span class="dt">header =</span> T,<span class="dt">row.names =</span> <span class="dv">1</span>)
+spline_logFC &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/smoothed_logFC_DEgenes.csv&quot;</span>,<span class="dt">header =</span> T,<span class="dt">row.names =</span> <span class="dv">1</span>)
+n_s_logFC &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">apply</span>(spline_logFC,<span class="dv">1</span>,<span class="cf">function</span>(x){(x <span class="op">-</span><span class="st"> </span><span class="kw">min</span>(x) ) <span class="op">/</span><span class="st"> </span>(<span class="kw">max</span>(x) <span class="op">-</span><span class="st"> </span><span class="kw">min</span>(x))}))
+group_order &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/group_order.csv&quot;</span>,<span class="dt">header =</span> T,<span class="dt">row.names =</span> <span class="dv">1</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp &lt;-<span class="st"> </span><span class="kw">rownames</span>(mouse_DEgenes)
+temp &lt;-<span class="st"> </span>temp[<span class="op">!</span>(<span class="kw">rownames</span>(mouse_DEgenes) <span class="op">%in%</span><span class="st"> </span>homologs[,<span class="dv">1</span>] )]
+temp &lt;-<span class="st"> </span><span class="kw">c</span>(temp, <span class="kw">as.character</span>(homologs[homologs[,<span class="dv">1</span>] <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(mouse_DEgenes),<span class="dv">2</span>]))
+
+GroupA &lt;-<span class="st"> </span>temp
+GroupC &lt;-<span class="st"> </span><span class="kw">as.character</span>(IBD_genes)
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">2</span>)
+input  &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;IBD_genes&quot;</span>=GroupC,<span class="st">&quot;mouse_DEG&quot;</span>=GroupA)
+a&lt;-<span class="kw">attr</span>(<span class="kw">venn</span>(input), <span class="st">&quot;intersections&quot;</span>)
+<span class="kw">title</span>(<span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;IBD risk genes and mouse genes&quot;</span>))
+
+
+input  &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;CD_risk_genes&quot;</span>=<span class="kw">as.character</span>(CD_risk_genes),<span class="st">&quot;mouse_DEG&quot;</span>=temp,<span class="st">&quot;UC_risk_genes&quot;</span>=<span class="kw">as.character</span>(UC_risk_genes))
+c&lt;-<span class="kw">attr</span>(<span class="kw">venn</span>(input), <span class="st">&quot;intersections&quot;</span>)
+<span class="kw">title</span>(<span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;CD and UC risk genes in mouse DEGs&quot;</span>))</code></pre></div>
+<p><img src="mapping_ibd_risk_genes_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="ibd-risk-genes-per-cluster" class="section level1">
+<h1><span class="header-section-number">5</span> IBD risk genes per cluster</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intersect_per_cluster &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="kw">mypar</span>(<span class="dv">3</span>,<span class="dv">3</span>)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">max</span>(mouse_modules)){
+  temp &lt;-<span class="st"> </span><span class="kw">rownames</span>(mouse_DEgenes)[mouse_modules <span class="op">==</span><span class="st"> </span>i]
+  temp &lt;-<span class="st"> </span>temp[<span class="op">!</span>(<span class="kw">rownames</span>(mouse_DEgenes)[mouse_modules <span class="op">==</span><span class="st"> </span>i] <span class="op">%in%</span><span class="st"> </span>homologs[,<span class="dv">1</span>] )]
+  temp &lt;-<span class="st"> </span><span class="kw">c</span>(temp, <span class="kw">as.character</span>(homologs[homologs[,<span class="dv">1</span>] <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(mouse_DEgenes)[mouse_modules <span class="op">==</span><span class="st"> </span>i],<span class="dv">2</span>]))
+  
+  GroupA &lt;-<span class="st"> </span>temp
+  
+  input  &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;IBD_genes&quot;</span>=a<span class="op">$</span><span class="st">`</span><span class="dt">IBD_genes:mouse_DEG</span><span class="st">`</span>,<span class="st">&quot;mouse_DEG&quot;</span>=GroupA)
+  b&lt;-<span class="kw">attr</span>(<span class="kw">venn</span>(input,<span class="dt">cexil =</span> <span class="fl">1.5</span>,<span class="dt">cexsn =</span> <span class="fl">1.5</span>), <span class="st">&quot;intersections&quot;</span>)
+  <span class="kw">title</span>(<span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;Module &quot;</span>,i))
+  
+  intersect_per_cluster[[i]] &lt;-<span class="st"> </span>b<span class="op">$</span><span class="st">`</span><span class="dt">IBD_genes:mouse_DEG</span><span class="st">`</span>
+  }</code></pre></div>
+<p><img src="mapping_ibd_risk_genes_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+</div>
+<div id="plotting-percentages-per-cluster" class="section level1">
+<h1><span class="header-section-number">6</span> Plotting percentages per cluster</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp &lt;-<span class="st"> </span><span class="kw">sapply</span>(intersect_per_cluster,length)
+<span class="kw">names</span>(temp) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;module&quot;</span>,<span class="dv">1</span><span class="op">:</span><span class="kw">max</span>(mouse_modules[,<span class="dv">1</span>]))
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">3</span>))
+<span class="kw">barplot</span>(temp[<span class="kw">order</span>(temp)],<span class="dt">horiz=</span>T,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">col=</span>mypalette2[<span class="dv">1</span><span class="op">:</span><span class="kw">max</span>(mouse_modules[,<span class="dv">1</span>])][<span class="kw">order</span>(temp)],<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">30</span>),<span class="dt">xlab=</span><span class="st">&#39;number of genes&#39;</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">2</span>)
+<span class="kw">text</span>(temp[<span class="kw">order</span>(temp)],(<span class="dv">0</span><span class="op">:</span>(<span class="kw">length</span>(temp)<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span><span class="fl">1.2</span>)<span class="op">+</span><span class="fl">0.7</span>,<span class="kw">paste0</span>(<span class="dv">100</span><span class="op">*</span><span class="kw">round</span>(temp[<span class="kw">order</span>(temp)]<span class="op">/</span><span class="kw">sum</span>(temp),<span class="dv">3</span>),<span class="st">&quot;%&quot;</span>),<span class="dt">pos=</span><span class="dv">4</span>)
+<span class="kw">pie</span>(temp[<span class="kw">order</span>(temp,<span class="dt">decreasing =</span> T)],<span class="dt">col =</span> mypalette2[<span class="dv">1</span><span class="op">:</span><span class="kw">max</span>(mouse_modules[,<span class="dv">1</span>])][<span class="kw">order</span>(temp,<span class="dt">decreasing =</span> T)],<span class="dt">clockwise =</span> T,<span class="dt">border =</span> <span class="st">&quot;white&quot;</span>,<span class="dt">main =</span> <span class="st">&quot;Percentage of conserved gene per cluster&quot;</span>)</code></pre></div>
+<p><img src="mapping_ibd_risk_genes_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
+</div>
+<div id="ploting-a-heatmap-with-a-list-of-uc-risk-genes" class="section level1">
+<h1><span class="header-section-number">7</span> Ploting a heatmap with a list of UC-risk genes</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">gene_list &lt;-<span class="st"> </span><span class="kw">read_xlsx</span>(<span class="st">&quot;/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/GeneLists/nature22969-s2.xlsx&quot;</span>,<span class="dt">sheet =</span> <span class="dv">3</span>)
+disease &lt;-<span class="st"> </span>gene_list<span class="op">$</span>trait.reassigned
+disease &lt;-<span class="st"> </span>disease <span class="op">!=</span><span class="st"> &quot;CD&quot;</span>
+list &lt;-<span class="st"> </span>gene_list<span class="op">$</span>Gene[<span class="op">!</span><span class="kw">is.na</span>(gene_list<span class="op">$</span>Gene[disease])]
+list &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">unlist</span>(<span class="kw">strsplit</span>(list,<span class="dt">split =</span> <span class="st">&quot;,&quot;</span>)))
+
+homologs2 &lt;-<span class="st"> </span>homologs[homologs<span class="op">$</span>human <span class="op">%in%</span><span class="st"> </span>list,]
+mouse &lt;-<span class="st"> </span><span class="kw">as.vector</span>(homologs2<span class="op">$</span>mouse)
+in_common &lt;-<span class="st"> </span><span class="kw">rownames</span>(mouse_DEgenes) <span class="op">%in%</span><span class="st"> </span>mouse
+
+groups &lt;-<span class="st"> </span><span class="kw">setNames</span>(mouse_modules[,<span class="dv">1</span>],<span class="kw">rownames</span>(mouse_modules))
+
+ann_groups_list &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">ann_groups=</span><span class="kw">paste0</span>(<span class="st">&quot;cluster&quot;</span>,groups[in_common]),<span class="dt">row.names=</span><span class="kw">names</span>(groups[in_common]))
+tag_colors_list &lt;-<span class="st"> </span>mypalette2[<span class="kw">min</span>(groups[in_common])<span class="op">:</span><span class="kw">max</span>(groups[in_common])]; <span class="kw">names</span>(tag_colors_list) &lt;-<span class="st"> </span><span class="kw">unique</span>(ann_groups_list)[[<span class="dv">1</span>]]
+
+<span class="kw">pheatmap</span>(n_s_logFC[in_common,][<span class="kw">order</span>(<span class="kw">order</span>(<span class="kw">as.numeric</span>(<span class="kw">rownames</span>(group_order)))[groups[in_common]]),], <span class="dt">cluster_rows=</span>F,<span class="dt">cluster_cols=</span><span class="ot">FALSE</span>, <span class="dt">scale=</span><span class="st">&quot;none&quot;</span>, <span class="dt">fontsize_row=</span><span class="dv">12</span>, <span class="dt">fontsize_col=</span><span class="dv">12</span>, <span class="dt">col=</span> <span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;navy&quot;</span>, <span class="st">&quot;grey95&quot;</span>, <span class="st">&quot;firebrick3&quot;</span>))(<span class="dv">50</span>), <span class="dt">treeheight_row =</span> <span class="dv">100</span>,<span class="dt">annotation_row =</span> <span class="kw">as.data.frame</span>(ann_groups_list), <span class="dt">annotation_colors =</span>  <span class="kw">list</span>(<span class="dt">ann_groups =</span> tag_colors_list),<span class="dt">border_color =</span> <span class="ot">NA</span>,<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span>.<span class="dv">5</span>,<span class="fl">1.5</span>,<span class="dt">length.out =</span> <span class="dv">50</span>))</code></pre></div>
+<p><img src="mapping_ibd_risk_genes_files/figure-html/unnamed-chunk-8-1.png" width="480" /></p>
+</div>
+<div id="performing-gene-set-analysis-on-the-shared-list-between-mouse-and-humans" class="section level1">
+<h1><span class="header-section-number">8</span> Performing Gene Set Analysis on the shared list between mouse and humans</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pvalue_cutoff &lt;-<span class="st"> </span><span class="fl">0.05</span>
+no_genes_cutoff &lt;-<span class="st"> </span><span class="dv">3</span>
+
+
+<span class="co">#GO enrichment</span>
+a &lt;-<span class="st"> </span><span class="kw">enrichr</span>(<span class="dt">genes=</span><span class="kw">unique</span>(<span class="kw">unlist</span>(intersect_per_cluster)), <span class="dt">databases =</span> <span class="st">&quot;GO_Biological_Process_2017&quot;</span>)[[<span class="dv">1</span>]]
+  <span class="co">#remove terms with p-values &gt; pvalue_cutoff and number of genes &lt; no_genes_cutoff</span>
+a &lt;-<span class="st"> </span>a[<span class="kw">order</span>(a<span class="op">$</span>P.value,<span class="dt">decreasing =</span> F),]
+a &lt;-<span class="st"> </span>a[a<span class="op">$</span>P.value <span class="op">&lt;</span><span class="st"> </span>pvalue_cutoff <span class="op">&amp;</span><span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">sapply</span>(<span class="kw">strsplit</span>(a[,<span class="st">&quot;Overlap&quot;</span>],<span class="st">&quot;/&quot;</span>),<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>)) <span class="op">&gt;=</span><span class="st"> </span>no_genes_cutoff,]
+  <span class="co">#remove terms with &quot;positive/negative regulation&quot;</span>
+a &lt;-<span class="st"> </span>a[<span class="kw">grep</span>(<span class="st">&quot;regulation&quot;</span>,a<span class="op">$</span>Term,<span class="dt">invert =</span> T),]
+  <span class="co">#if (nrow(a) &gt; 20) { a &lt;- a[order(a$P.value,decreasing = F),][1:20,] }</span>
+a<span class="op">$</span>Term &lt;-<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">strsplit</span>(a[,<span class="st">&quot;Term&quot;</span>],<span class="st">&quot; [(]GO:&quot;</span>),<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>)
+
+
+<span class="co">#KEGG enrichment</span>
+b &lt;-<span class="st"> </span><span class="kw">enrichr</span>(<span class="dt">genes=</span><span class="kw">unique</span>(<span class="kw">unlist</span>(intersect_per_cluster)), <span class="dt">databases =</span> <span class="st">&quot;KEGG_2016&quot;</span>)[[<span class="dv">1</span>]]
+b &lt;-<span class="st"> </span>b[<span class="kw">order</span>(b<span class="op">$</span>P.value,<span class="dt">decreasing =</span> F),]
+b &lt;-<span class="st"> </span>b[<span class="kw">grep</span>(<span class="st">&quot;_hsa05&quot;</span>,b<span class="op">$</span>Term,<span class="dt">invert =</span> T),]   <span class="co">#Remove disease-related KEGG pathways (&quot;hsa05&quot;&quot;)</span>
+b &lt;-<span class="st"> </span>b[b<span class="op">$</span>P.value <span class="op">&lt;</span><span class="st"> </span>pvalue_cutoff <span class="op">&amp;</span><span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">sapply</span>(<span class="kw">strsplit</span>(b[,<span class="st">&quot;Overlap&quot;</span>],<span class="st">&quot;/&quot;</span>),<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>)) <span class="op">&gt;=</span><span class="st"> </span>no_genes_cutoff,]
+  <span class="co">#if (nrow(b) &gt; 20) { b &lt;- b[order(b$P.value,decreasing = F),][1:20,] }</span>
+b<span class="op">$</span>Term &lt;-<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">strsplit</span>(b[,<span class="st">&quot;Term&quot;</span>],<span class="st">&quot;_&quot;</span>),<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>)
+
+
+<span class="co">#Plot enrichments</span>
+n &lt;-<span class="st"> </span><span class="dv">10</span>
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">15</span>,<span class="dv">2</span>,<span class="dv">3</span>))
+<span class="kw">barplot</span>(<span class="op">-</span><span class="kw">log</span>(a[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;P.value&quot;</span>],<span class="dv">10</span>),<span class="dt">names.arg=</span>a[n<span class="op">:</span><span class="dv">1</span>,<span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">main=</span><span class="st">&#39;GO&#39;</span>,<span class="dt">xlab=</span><span class="st">&quot; &quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(<span class="op">-</span><span class="kw">log</span>(a[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;P.value&quot;</span>],<span class="dv">10</span>))<span class="op">*</span><span class="fl">1.2</span>),<span class="dt">tck=</span><span class="op">-</span>.<span class="dv">05</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">cex.axis=</span><span class="dv">1</span>,<span class="dt">cex.names=</span><span class="dv">1</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">2</span>)
+<span class="kw">barplot</span>(<span class="op">-</span><span class="kw">log</span>(b[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;P.value&quot;</span>],<span class="dv">10</span>),<span class="dt">names.arg=</span>b[n<span class="op">:</span><span class="dv">1</span>,<span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">main=</span><span class="st">&#39;KEGG&#39;</span>,<span class="dt">xlab=</span><span class="st">&quot; &quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(<span class="op">-</span><span class="kw">log</span>(b[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;P.value&quot;</span>],<span class="dv">10</span>))<span class="op">*</span><span class="fl">1.2</span>),<span class="dt">tck=</span><span class="op">-</span>.<span class="dv">05</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">cex.axis=</span><span class="dv">1</span>,<span class="dt">cex.names=</span><span class="dv">1</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">2</span>)</code></pre></div>
+<p><img src="mapping_ibd_risk_genes_files/figure-html/unnamed-chunk-9-1.png" width="960" /></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

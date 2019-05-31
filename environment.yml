@@ -8,9 +8,11 @@ channels:
 dependencies:
  - bioconductor-biomart=2.38
  - bioconductor-sva=3.30
- - bioconductor-edger=3.26
+ - bioconductor-edger=3.2
  - bioconductor-limma=3.38
- - r-base=3.5
+ - bioconductor-geoquery=2.5
+ - bioconductor-edaseq
+ - wget
  - r-base=3.5
  - r-biocmanager=1.30
  - r-data.table=1.11
@@ -22,4 +24,9 @@ dependencies:
  - r-rcolorbrewer=1.1
  - r-scales=1.0
  - r-vegan=2.5
- - bioconductor-edger
+ - r-enrichr=1.0
+
+
+#EDASeq
+#GOsummaries
+#enrichR

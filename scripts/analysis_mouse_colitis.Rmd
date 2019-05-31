@@ -179,7 +179,6 @@ head(s_logFC,20)
 
 
 #Normalize expression to range from 0 to 1 (to facilitate ploting)
-n_s_logFC <- (s_logFC - min(s_logFC) ) / (max(s_logFC) - min(s_logFC))
 n_s_logFC <- t(apply(s_logFC,1,function(x){(x - min(x) ) / (max(x) - min(x))}))
 head(s_logFC)
 head(n_s_logFC)

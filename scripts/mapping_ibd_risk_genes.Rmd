@@ -1,0 +1,195 @@
+---
+title: "Mapping IBD risk genes to mouse colitis"
+subtitle: "Czarnewski et al 2019"
+author: "Paulo Czarnewski"
+date: "30 May 2019"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    toc_depth: 4
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    self_contained: false
+    keep_md: false
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+# Load Packages
+
+```{r,echo=TRUE}
+#Installing required packages
+source("./support_functions.R")
+inst_packages(c("readxl","data.table","biomaRt","RColorBrewer","rafalib","enrichR","venn","pheatmap"))
+
+
+#Defining color paletes
+palete <- RColorBrewer::brewer.pal(8,"Set2")
+mypalette2 <- c(brewer.pal(n = 8,name = "Set2"),brewer.pal(n = 9,name = "Set1"))
+```
+
+
+
+***
+# Loading Human dataset
+
+```{r results="hide", message=F,warning=FALSE}
+IBD_GWAS <- read_xlsx("/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/GeneLists/nature22969-s2.xlsx",sheet = 3)
+IBD_genes <- IBD_GWAS$Gene[!is.na(IBD_GWAS$Gene)]
+IBD_genes <- unique(unlist(strsplit(IBD_genes,split = "[,.;]")))
+
+disease <- IBD_GWAS$trait.reassigned[!is.na(IBD_GWAS$Gene)]
+UC_risk_genes <- unique(unlist(strsplit(IBD_genes[disease != "CD"],split = "[,.;]")))
+CD_risk_genes <- unique(unlist(strsplit(IBD_genes[disease != "UC"],split = "[,.;]")))
+```
+
+
+
+# Loading Mouse-human homologs
+
+Since we used the gene annotation from JAX in part of the anlaysis, it is likely that the list of differentially expressed genes might slightly vary depending on the updates in their database. For this reason, we also provided the list of genes obtained during our initial anlaysis in order to produce the exact same figures as in the paper.
+
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=3.3,fig.show="hold",warning=FALSE}
+#A list of homolog genes can be found in:
+#homologs <- fread('http://www.informatics.jax.org/downloads/reports/HMD_HumanPhenotype.rpt')
+#homologs <- data.frame("mouse"=homologs$V5,"human"=homologs$V1)
+
+#Load the homolog gene list version downloaded in 2018-06-15 used in the paper.
+homologs <- read.csv("../processed_files/homologs.csv",row.names = 1)
+head(homologs)
+```
+
+
+# Loading Mouse dataset
+
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=3.3,fig.show="hold",warning=FALSE}
+#Loading mouse data
+mouse_DEgenes <- read.csv("../processed_files/DEgenes.csv",header = T,row.names = 1)
+mouse_modules <- read.csv("../processed_files/gene_modules.csv",header = T,row.names = 1)
+spline_logFC <- read.csv("../processed_files/smoothed_logFC_DEgenes.csv",header = T,row.names = 1)
+n_s_logFC <- t(apply(spline_logFC,1,function(x){(x - min(x) ) / (max(x) - min(x))}))
+group_order <- read.csv("../processed_files/group_order.csv",header = T,row.names = 1)
+```
+
+
+
+
+```{r, echo=T}
+temp <- rownames(mouse_DEgenes)
+temp <- temp[!(rownames(mouse_DEgenes) %in% homologs[,1] )]
+temp <- c(temp, as.character(homologs[homologs[,1] %in% rownames(mouse_DEgenes),2]))
+
+GroupA <- temp
+GroupC <- as.character(IBD_genes)
+
+mypar(1,2)
+input  <- list("IBD_genes"=GroupC,"mouse_DEG"=GroupA)
+a<-attr(venn(input), "intersections")
+title(main = paste0("IBD risk genes and mouse genes"))
+
+
+input  <- list("CD_risk_genes"=as.character(CD_risk_genes),"mouse_DEG"=temp,"UC_risk_genes"=as.character(UC_risk_genes))
+c<-attr(venn(input), "intersections")
+title(main = paste0("CD and UC risk genes in mouse DEGs"))
+```
+
+
+
+#IBD risk genes per cluster
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=10,fig.show="hold",warning=FALSE}
+intersect_per_cluster <- list()
+mypar(3,3)
+for(i in 1:max(mouse_modules)){
+  temp <- rownames(mouse_DEgenes)[mouse_modules == i]
+  temp <- temp[!(rownames(mouse_DEgenes)[mouse_modules == i] %in% homologs[,1] )]
+  temp <- c(temp, as.character(homologs[homologs[,1] %in% rownames(mouse_DEgenes)[mouse_modules == i],2]))
+  
+  GroupA <- temp
+  
+  input  <- list("IBD_genes"=a$`IBD_genes:mouse_DEG`,"mouse_DEG"=GroupA)
+  b<-attr(venn(input,cexil = 1.5,cexsn = 1.5), "intersections")
+  title(main = paste0("Module ",i))
+  
+  intersect_per_cluster[[i]] <- b$`IBD_genes:mouse_DEG`
+  }
+```
+
+
+# Plotting percentages per cluster
+
+```{r,  results="hide", message=F, fig.width=10,warning=F,fig.height=3,fig.show="hold",warning=FALSE}
+temp <- sapply(intersect_per_cluster,length)
+names(temp) <- paste0("module",1:max(mouse_modules[,1]))
+
+mypar(1,2,mar=c(4,5,2,3))
+barplot(temp[order(temp)],horiz=T,yaxs="i",col=mypalette2[1:max(mouse_modules[,1])][order(temp)],las=1,border=NA,xaxs="i",xlim=c(0,30),xlab='number of genes')
+abline(v=0,lwd=2)
+text(temp[order(temp)],(0:(length(temp)-1)*1.2)+0.7,paste0(100*round(temp[order(temp)]/sum(temp),3),"%"),pos=4)
+pie(temp[order(temp,decreasing = T)],col = mypalette2[1:max(mouse_modules[,1])][order(temp,decreasing = T)],clockwise = T,border = "white",main = "Percentage of conserved gene per cluster")
+```
+
+
+
+# Ploting a heatmap with a list of UC-risk genes
+
+```{r results="hold", message=F, warning=FALSE, fig.height= 10,fig.width=5, warning=F}
+gene_list <- read_xlsx("/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/GeneLists/nature22969-s2.xlsx",sheet = 3)
+disease <- gene_list$trait.reassigned
+disease <- disease != "CD"
+list <- gene_list$Gene[!is.na(gene_list$Gene[disease])]
+list <- unique(unlist(strsplit(list,split = ",")))
+
+homologs2 <- homologs[homologs$human %in% list,]
+mouse <- as.vector(homologs2$mouse)
+in_common <- rownames(mouse_DEgenes) %in% mouse
+
+groups <- setNames(mouse_modules[,1],rownames(mouse_modules))
+
+ann_groups_list <- data.frame(ann_groups=paste0("cluster",groups[in_common]),row.names=names(groups[in_common]))
+tag_colors_list <- mypalette2[min(groups[in_common]):max(groups[in_common])]; names(tag_colors_list) <- unique(ann_groups_list)[[1]]
+
+pheatmap(n_s_logFC[in_common,][order(order(as.numeric(rownames(group_order)))[groups[in_common]]),], cluster_rows=F,cluster_cols=FALSE, scale="none", fontsize_row=12, fontsize_col=12, col= colorRampPalette(c("navy", "grey95", "firebrick3"))(50), treeheight_row = 100,annotation_row = as.data.frame(ann_groups_list), annotation_colors =  list(ann_groups = tag_colors_list),border_color = NA,breaks = seq(-.5,1.5,length.out = 50))
+```
+
+
+# Performing Gene Set Analysis on the shared list between mouse and humans
+
+
+```{r results="hide", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=3}
+pvalue_cutoff <- 0.05
+no_genes_cutoff <- 3
+
+
+#GO enrichment
+a <- enrichr(genes=unique(unlist(intersect_per_cluster)), databases = "GO_Biological_Process_2017")[[1]]
+  #remove terms with p-values > pvalue_cutoff and number of genes < no_genes_cutoff
+a <- a[order(a$P.value,decreasing = F),]
+a <- a[a$P.value < pvalue_cutoff & as.numeric(sapply(strsplit(a[,"Overlap"],"/"),"[[", 1)) >= no_genes_cutoff,]
+  #remove terms with "positive/negative regulation"
+a <- a[grep("regulation",a$Term,invert = T),]
+  #if (nrow(a) > 20) { a <- a[order(a$P.value,decreasing = F),][1:20,] }
+a$Term <- sapply(strsplit(a[,"Term"]," [(]GO:"),"[[", 1)
+
+
+#KEGG enrichment
+b <- enrichr(genes=unique(unlist(intersect_per_cluster)), databases = "KEGG_2016")[[1]]
+b <- b[order(b$P.value,decreasing = F),]
+b <- b[grep("_hsa05",b$Term,invert = T),]   #Remove disease-related KEGG pathways ("hsa05"")
+b <- b[b$P.value < pvalue_cutoff & as.numeric(sapply(strsplit(b[,"Overlap"],"/"),"[[", 1)) >= no_genes_cutoff,]
+  #if (nrow(b) > 20) { b <- b[order(b$P.value,decreasing = F),][1:20,] }
+b$Term <- sapply(strsplit(b[,"Term"],"_"),"[[", 1)
+
+
+#Plot enrichments
+n <- 10
+mypar(1,2,mar=c(2,15,2,3))
+barplot(-log(a[n:1,"P.value"],10),names.arg=a[n:1,1],horiz=T,las=1,col="grey",main='GO',xlab=" ",xlim=c(0,max(-log(a[n:1,"P.value"],10))*1.2),tck=-.05,border=NA,cex.axis=1,cex.names=1)
+abline(v=0,lwd=2)
+barplot(-log(b[n:1,"P.value"],10),names.arg=b[n:1,1],horiz=T,las=1,col="grey",main='KEGG',xlab=" ",xlim=c(0,max(-log(b[n:1,"P.value"],10))*1.2),tck=-.05,border=NA,cex.axis=1,cex.names=1)
+abline(v=0,lwd=2)
+```
+

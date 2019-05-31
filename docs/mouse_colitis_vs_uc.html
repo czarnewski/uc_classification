@@ -15,16 +15,16 @@
 
 <title>Comparisson of DE genes in DSS colitis vs Human colitis</title>
 
-<script src="mouse_colitis_vs_UC_files/jquery-1.11.3/jquery.min.js"></script>
+<script src="mouse_colitis_vs_uc_files/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="mouse_colitis_vs_UC_files/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
-<script src="mouse_colitis_vs_UC_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="mouse_colitis_vs_UC_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="mouse_colitis_vs_UC_files/bootstrap-3.3.5/shim/respond.min.js"></script>
-<script src="mouse_colitis_vs_UC_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="mouse_colitis_vs_UC_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="mouse_colitis_vs_UC_files/tocify-1.9.1/jquery.tocify.js"></script>
-<script src="mouse_colitis_vs_UC_files/navigation-1.1/tabsets.js"></script>
+<link href="mouse_colitis_vs_uc_files/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="mouse_colitis_vs_uc_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="mouse_colitis_vs_uc_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="mouse_colitis_vs_uc_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="mouse_colitis_vs_uc_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="mouse_colitis_vs_uc_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="mouse_colitis_vs_uc_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="mouse_colitis_vs_uc_files/navigation-1.1/tabsets.js"></script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -397,7 +397,7 @@ input  &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="d
                <span class="dt">mouse_DEG=</span>mouse_homologs)
 a &lt;-<span class="st"> </span><span class="kw">attr</span>(<span class="kw">venn</span>(input,<span class="dt">cexil =</span> <span class="dv">2</span>,<span class="dt">cexsn =</span> <span class="dv">2</span>), <span class="st">&quot;intersections&quot;</span>)
 <span class="kw">title</span>(<span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;Venn diagram for all DEGs&quot;</span>))</code></pre></div>
-<p><img src="mouse_colitis_vs_UC_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<p><img src="mouse_colitis_vs_uc_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
 </div>
 <div id="plotting-venn-diagram-per-cluster" class="section level1">
 <h1><span class="header-section-number">6</span> Plotting venn diagram per cluster</h1>
@@ -416,7 +416,7 @@ a &lt;-<span class="st"> </span><span class="kw">attr</span>(<span class="kw">ve
   
   intersect_per_cluster[[i]] &lt;-<span class="st"> </span>a<span class="op">$</span><span class="st">`</span><span class="dt">human_DEG:mouse_DEG</span><span class="st">`</span>
 }</code></pre></div>
-<p><img src="mouse_colitis_vs_UC_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+<p><img src="mouse_colitis_vs_uc_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
 </div>
 <div id="plotting-percentages-per-cluster" class="section level1">
 <h1><span class="header-section-number">7</span> Plotting percentages per cluster</h1>
@@ -428,7 +428,7 @@ a &lt;-<span class="st"> </span><span class="kw">attr</span>(<span class="kw">ve
 <span class="kw">abline</span>(<span class="dt">v=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">2</span>)
 <span class="kw">text</span>(temp[<span class="kw">order</span>(temp)],(<span class="dv">0</span><span class="op">:</span>(<span class="kw">length</span>(temp)<span class="op">-</span><span class="dv">1</span>)<span class="op">*</span><span class="fl">1.2</span>)<span class="op">+</span><span class="fl">0.7</span>,<span class="kw">paste0</span>(<span class="dv">100</span><span class="op">*</span><span class="kw">round</span>(temp[<span class="kw">order</span>(temp)]<span class="op">/</span><span class="kw">sum</span>(temp),<span class="dv">3</span>),<span class="st">&quot;%&quot;</span>),<span class="dt">pos=</span><span class="dv">4</span>)
 <span class="kw">pie</span>(temp[<span class="kw">order</span>(temp,<span class="dt">decreasing =</span> T)],<span class="dt">col =</span> mypalette2[<span class="dv">1</span><span class="op">:</span><span class="kw">max</span>(mouse_modules[,<span class="dv">1</span>])][<span class="kw">order</span>(temp,<span class="dt">decreasing =</span> T)],<span class="dt">clockwise =</span> T,<span class="dt">border =</span> <span class="st">&quot;white&quot;</span>,<span class="dt">main =</span> <span class="st">&quot;Percentage of conserved gene per cluster&quot;</span>)</code></pre></div>
-<p><img src="mouse_colitis_vs_UC_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
+<p><img src="mouse_colitis_vs_uc_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
 </div>
 <div id="performing-gene-set-analysis-on-the-shared-list-between-mouse-and-humans" class="section level1">
 <h1><span class="header-section-number">8</span> Performing Gene Set Analysis on the shared list between mouse and humans</h1>
@@ -463,7 +463,7 @@ n &lt;-<span class="st"> </span><span class="dv">10</span>
 <span class="kw">abline</span>(<span class="dt">v=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">2</span>)
 <span class="kw">barplot</span>(<span class="op">-</span><span class="kw">log</span>(b[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;P.value&quot;</span>],<span class="dv">10</span>),<span class="dt">names.arg=</span>b[n<span class="op">:</span><span class="dv">1</span>,<span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">main=</span><span class="st">&#39;KEGG&#39;</span>,<span class="dt">xlab=</span><span class="st">&quot; &quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(<span class="op">-</span><span class="kw">log</span>(b[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;P.value&quot;</span>],<span class="dv">10</span>))<span class="op">*</span><span class="fl">1.2</span>),<span class="dt">tck=</span><span class="op">-</span>.<span class="dv">05</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">cex.axis=</span><span class="dv">1</span>,<span class="dt">cex.names=</span><span class="dv">1</span>)
 <span class="kw">abline</span>(<span class="dt">v=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">2</span>)</code></pre></div>
-<p><img src="mouse_colitis_vs_UC_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
+<p><img src="mouse_colitis_vs_uc_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
 </div>
 
 

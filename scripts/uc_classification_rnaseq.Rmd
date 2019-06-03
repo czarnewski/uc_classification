@@ -1,0 +1,621 @@
+---
+title: "1.Data merging, normalization and EDA plots"
+author: "Paulo Czarnewski"
+date: "07 March 2019"
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+###Load Packages
+```{r results="hide", message=F, warning=FALSE}
+#Set working directory
+setwd("/Users/Czarnewski/Box Sync/Paulo_data/20170913 - Human UC treatment prediction/20190307 - RNAseq dataset/")
+
+#Source my custom functions
+source("/Users/Czarnewski/Box Sync/Paulo_data/20170913 - Human UC treatment prediction/20180423 - Merged datasets/4.Auxiliary functions.R")
+
+#Install and load packages
+inst_packages(c("annotate","hgu133plus2.db","Biobase","Rtsne","GEOquery","rafalib","multcomp","RColorBrewer","preprocessCore","data.table","limma","pheatmap","ROCR","epitools","beeswarm","EDASeq","vioplot","caret","pROC","e1071","sva","car","edgeR"))
+
+#Define color pallete
+pallete <- c(brewer.pal(8,"Set2"),brewer.pal(9,"Set1"))[2:8]
+pallete2 <- c(brewer.pal(8,"Set2"),brewer.pal(9,"Set1"))
+color <- colorRampPalette(c("gray","red","blue"))(10)
+
+if(!file.exists("homologs.csv")){
+  homologs <- fread('http://www.informatics.jax.org/downloads/reports/HMD_HumanPhenotype.rpt')
+  homologs <- data.frame("mouse"=homologs$V5,"human"=homologs$V1)
+  write.csv(homologs,"homologs.csv",row.names = T) 
+  } else { homologs <- read.csv("homologs.csv",row.names = 1) }
+```
+
+***
+###Loading Human dataset
+```{r results="hide", message=F,warning=FALSE}
+#List of GSE to use in the anlaysis
+GEOs <- c("GSE109142","GSE117993")
+
+#PROTECT dataset
+
+
+#Importing samples from GSE109142
+GSE109142_meta <- pData(getGEO("GSE109142",GSEMatrix =TRUE)[[1]])
+GSE109142_meta <- GSE109142_meta[GSE109142_meta$`diagnosis:ch1` == "Ulcerative Colitis",]
+files <- list.files("~/Downloads/GSE109142_RAW/")
+for(i in GSE109142_meta$geo_accession){
+  cat("processing sample ",i,"...\n")
+  temp <- read.delim(paste0("~/Downloads/GSE109142_RAW/",files[grep(i,files)]),row.names = 1)
+  if(i == GSE109142_meta$geo_accession[1]){
+    dataGSE109142 <- temp
+  } else{
+  dataGSE109142 <- cbind(dataGSE109142,temp)
+}}
+colnames(dataGSE109142) <- GSE109142_meta$geo_accession
+dataGSE109142 <- dataGSE109142-0.01
+
+
+
+#Merge data and remove 0 counts
+data <- as.matrix(dataGSE109142)
+sel <- apply(data,1,function(x) sum(x > 5) > ncol(data)*0.1 )
+data <- data[sel,]
+#data <- log2(data+1)
+head(data)
+
+
+#Merge metadata
+phenotData <- GSE109142_meta
+Group <- phenotData$`week 4 remission:ch1`
+phenotData[1,]
+
+#Correcting sample-wise data distribution
+mypar(1,1)
+#plotMDS(data,pch=16,col="red")
+shist(data,col="red")
+plotRLE(data,outline=F,xaxs="i",col="red",lty=1,border="grey", main=paste0("RLE"),las=2,cex.axis=0.5,cex.main=0.8,cex=0.1,pch=16,ylim=c(-0.5,0.3))
+
+modCombat <- model.matrix(~1,data=phenotData)
+combat_edata <- ComBat(dat=data,batch=phenotData$`Sex:ch1`,mod=modCombat)
+#combat_edata <- ComBat(dat=combat_edata,batch=phenotData$`initial treatment:ch1`,mod=modCombat)
+#combat_edata <- normalizeBetweenArrays(combat_edata,method = "quantile")
+combat_edata[combat_edata<0] <- 0
+
+
+y <- DGEList(counts=combat_edata, modCombat,remove.zeros = T)
+y <- calcNormFactors(y,method = "TMM")
+y <- estimateCommonDisp(y)
+normcounts <- cpm(y, log = T, prior.count = 1, normalized.lib.sizes = T)
+
+
+raw_data <- data
+data <- combat_edata
+data <- normcounts
+
+shist(data)
+plotRLE(data,outline=F,xaxs="i",col="red",lty=1,border="grey", main=paste0("RLE"),las=2,cex.axis=0.5,cex.main=0.8,cex=0.1,pch=16,ylim=c(-0.5,0.3))
+#plotMDS(ndata,pch=16,col="red")
+
+Group <- factor(phenotData$`week 4 remission:ch1`)
+write.csv(dataGSE109142,"rawdataGSE109142.csv",row.names = T)
+write.csv(data,"data.csv",row.names = T)
+write.csv(phenotData,"phenotData.csv",row.names = T)
+write.csv(Group,"Group.csv",row.names = T)
+```
+
+
+#Plot series
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=5}
+out <- 1.2
+
+
+
+classify <- function(data){
+  k <- dist(t(data))
+  #k<-as.dist((1-cor(data))/2)
+  k <- hclust(k,method = "ward.D2")
+  k <- cutree(k,k = 2)
+  #k$cluster <- k
+  #Create the definition of UC1 (lower expression) and UC2 (higher expression)
+  if( mean(colMedians(data)[k==2]) < mean(colMedians(data)[k==1]) ){ UC_subtype <- factor(paste0("UC",k)) } else {UC_subtype <- factor(ifelse(k==1,"UC2","UC1"))}
+ return(UC_subtype)
+}
+
+
+plot_series <- function(data){
+  mypar(3,5)
+  PC <- prcomp(apply(data,1,function(x)scale(x,center = T,scale = T)))
+plot(PC$x[,1],PC$x[,2],col="grey60",pch=16,xlim=c(min(PC$x[,1])*out,max(PC$x[,1])*out),ylim=c(min(PC$x[,2])*out,max(PC$x[,2])*out),las=1,xlab="PC1",ylab="PC2",cex=1.5,main="PCA")
+
+plot(PC$x[,1],PC$x[,2],col=pallete[Group],pch=16,xlim=c(min(PC$x[,1])*out,max(PC$x[,1])*out),ylim=c(min(PC$x[,2])*out,max(PC$x[,2])*out),las=1,xlab="PC1",ylab="PC2",cex=1.5,main="PCA by resp. to IFX")
+
+set.seed(12345)
+tSNE <- Rtsne(t(data),perplexity = 20,pca = T,max_iter = 1000,theta = .1)
+plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col="grey60",pch=16,line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="tSNE")
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+
+plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=densCols(tSNE$Y, colramp=colorRampPalette(c("grey80","grey80","navy", "dark green","orange", "red", "firebrick"))),pch=16,line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="tSNE")
+
+z <- kde2d(tSNE$Y[,1], tSNE$Y[,2], n=100, lims = c(min(tSNE$Y[,1])*out, max(tSNE$Y[,1])*out, min(tSNE$Y[,2])*out, max(tSNE$Y[,2])*out))
+
+plot(tSNE$Y[,1],tSNE$Y[,2],type="n",xaxt="n",yaxt="n",line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="contour tSNE")
+contour(z, drawlabels=FALSE, nlevels=5, col=c("red","grey","blue2","green4","orange3","firebrick"), add=TRUE)
+
+plot(tSNE$Y[,1],tSNE$Y[,2],type="n",xaxt="n",yaxt="n",line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="countour tSNE")
+contour(z, drawlabels=FALSE, nlevels=5, col=c("grey40"), add=TRUE)
+
+plot(tSNE$Y[,1],tSNE$Y[,2],type="n",xaxt="n",yaxt="n",line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="contour tSNE")
+contour(z, drawlabels=FALSE, nlevels=5, col="grey", add=TRUE)
+points(tSNE$Y[,1], tSNE$Y[,2],cex=1.5,pch=16)
+
+UC_subtype <- classify(data)
+
+plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=pallete[UC_subtype],line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="tSNE per cluster",pch=as.numeric(UC_subtype)+15)
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+
+plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=pallete[UC_subtype],line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="tSNE per cluster",pch=as.numeric(UC_subtype)+15)
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+
+for(i in 1:length(unique(UC_subtype))){
+  temp <- levels(UC_subtype)[i]
+  for (j in (1:length(UC_subtype))[UC_subtype == temp]){
+    lines(c(tSNE$Y[j,1],mean(tSNE$Y[UC_subtype == temp,1])),c(tSNE$Y[j,2],mean(tSNE$Y[UC_subtype == temp,2])),col=paste0(pallete[i],"90"),lwd=0.5)}}
+
+#points(k$centers,pch=22,bg="black",col=pallete[1:ncol(k$centers)],cex=2)
+a <- dataEllipse(tSNE$Y[,1], tSNE$Y[,2],draw = F,levels = 0.8,plot.points = F,group.labels = NA,groups = factor(UC_subtype))
+for(i in 1:2){
+  polygon(a[[i]],lty=1,border=pallete[i],lwd=2)}
+
+model <- glm((UC_subtype)~tSNE$Y,family="binomial")
+slope <- coef(model)[2]/(-coef(model)[3])
+intercept <- coef(model)[1]/(-coef(model)[3]) 
+abline(intercept,slope,lty=2)
+
+grad <- (colMedians(data) - min(colMedians(data))) / (max(colMedians(data)) - min(colMedians(data)))
+plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=colorRampPalette(c("grey90","grey80","navy"))(50)[grad*49+1],pch=as.numeric(UC_subtype)+15,line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="tSNE median expr.")
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+abline(intercept,slope,lty=2)
+
+plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=pallete[Group],pch=as.numeric(UC_subtype)+15,line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main="tSNE resp. to IFX")
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+abline(intercept,slope,lty=2)
+
+return(tSNE$Y)
+}
+```
+
+
+
+***
+#Selecting the top variable genes
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=6}
+rowVAR <- apply(data,1,function(x){var(x)})
+top_rowVAR <- sort(rowVAR,decreasing = T)[1:100]
+VAR_select <- names(top_rowVAR)
+d_VAR <- data[VAR_select,]
+a<- plot_series(d_VAR)
+t_data <- d_VAR
+UC_subtype <- classify(d_VAR)
+
+temp <- sapply(levels(UC_subtype),function(x) sum(as.character(Group[as.character(UC_subtype)==x])=="Yes")/sum(as.character(UC_subtype)==x)*100 )
+barplot(temp,ylim=c(0,100),las=1,col=pallete[1:length(levels(UC_subtype))],ylab="% response to IFX")
+abline(h=0,lwd=3)
+
+plot(a[,1],a[,2],col=pallete[factor(phenotData$`initial treatment:ch1`)],pch=16)
+
+```
+
+
+#Selecting the top CV genes
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=6}
+rowCV <- apply(data,1,function(x){var(x)/mean(x)})
+top_rowCV <- sort(rowCV,decreasing = T)[1:100]
+CV_select <- names(top_rowCV)
+d_CV <- data[CV_select,]
+a<- plot_series(d_CV)
+t_data <- d_CV
+UC_subtype <- classify(d_CV)
+
+
+temp <- sapply(levels(UC_subtype),function(x) sum(as.character(Group[as.character(UC_subtype)==x])=="Yes")/sum(as.character(UC_subtype)==x)*100 )
+barplot(temp,ylim=c(0,100),las=1,col=pallete[1:length(levels(UC_subtype))],ylab="% response to IFX")
+abline(h=0,lwd=3)
+
+plot(a[,1],a[,2],col=pallete[factor(phenotData$`initial treatment:ch1`)],pch=16)
+```
+
+
+
+#Using MOUSE PC1 and PC2 together to separate
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=6}
+n <- 100
+PC1 <- as.matrix(read.csv(paste0("/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/20170825-Heatmap cluster GO-enrichment DSS 9 clusters/Leading genes PC1.csv"),row.names = 1))
+PC2 <- as.matrix(read.csv(paste0("/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/20170825-Heatmap cluster GO-enrichment DSS 9 clusters/Leading genes PC2.csv"),row.names = 1))
+PC_genes <- unique(c(rownames(PC1)[1:n],rownames(PC2)[1:n]))
+h_PC <- homologs[homologs[,1] %in% PC_genes,]
+h_PC <- sort(unique(as.vector(h_PC[,2])))
+cPC <- data[h_PC[h_PC %in% rownames(data)],]
+dim(cPC)
+a <- plot_series(cPC)
+t_data <- cPC
+
+UC_subtype <- classify(cPC)
+
+#write.csv(setNames(UC_subtype,colnames(cPC)),"UC_subtype.csv",row.names = T)
+#write.csv(as.data.frame(a,row.names = colnames(cPC),col.names=c("tSNE1","tSNE2")),"tSNE_coordinates.csv",row.names = T)
+```
+
+
+
+
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=6}
+model <- glm((UC_subtype)~a,family="binomial")
+slope <- coef(model)[2]/(-coef(model)[3])
+intercept <- coef(model)[1]/(-coef(model)[3]) 
+
+mypar(3,5)
+plot(a,col=pallete[3:5][factor(phenotData$`initial treatment:ch1`)],cex=1,las=1,xaxt="n",yaxt="n",pch=as.numeric(factor(phenotData$`initial treatment:ch1`))+15,line=.5,xlab="tSNE1", ylab="tSNE2",xlim=c(min(a[,1])*out,max(a[,1])*out),ylim=c(min(a[,2])*out,max(a[,2])*out))
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+abline(intercept,slope,lty=2)
+
+sel <- (phenotData$`initial treatment:ch1`=="5ASA")
+o <- order(sel)
+plot(a[o,],col=c("grey90",pallete[3:5])[sel*1+1][o],cex=1,las=1,xaxt="n",yaxt="n",pch=as.numeric(factor(phenotData$`initial treatment:ch1`))+15,line=.5,xlab="tSNE1",main="5ASA", ylab="tSNE2",xlim=c(min(a[,1])*out,max(a[,1])*out),ylim=c(min(a[,2])*out,max(a[,2])*out))
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+abline(intercept,slope,lty=2)
+
+sel <- (phenotData$`initial treatment:ch1`=="CS-IV")
+o <- order(sel)
+plot(a[o,],col=c("grey90",pallete[3:5])[sel*2+1][o],cex=1,las=1,xaxt="n",yaxt="n",pch=as.numeric(factor(phenotData$`initial treatment:ch1`))+15,line=.5,xlab="tSNE1",main="CS-IV", ylab="tSNE2",xlim=c(min(a[,1])*out,max(a[,1])*out),ylim=c(min(a[,2])*out,max(a[,2])*out))
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+abline(intercept,slope,lty=2)
+
+sel <- (phenotData$`initial treatment:ch1`=="CS-Oral")
+o <- order(sel)
+plot(a[o,],col=c("grey90",pallete[3:5])[sel*3+1][o],cex=1,las=1,xaxt="n",yaxt="n",pch=as.numeric(factor(phenotData$`initial treatment:ch1`))+15,line=.5,xlab="tSNE1",main="CS-Oral", ylab="tSNE2",xlim=c(min(a[,1])*out,max(a[,1])*out),ylim=c(min(a[,2])*out,max(a[,2])*out))
+axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+abline(intercept,slope,lty=2)
+
+temp <- sapply(unique(phenotData$`initial treatment:ch1`),function(x) sum(as.character(Group[(as.character(UC_subtype)=="UC1") & (phenotData$`initial treatment:ch1` == x)])=="Yes")/sum((as.character(UC_subtype)=="UC1") & (phenotData$`initial treatment:ch1` == x))*100 )
+barplot(temp[levels(factor(phenotData$`initial treatment:ch1`))],ylim=c(0,100),las=1,col=pallete[3:5],ylab="% response to IFX",las=2)
+
+temp <- sapply(unique(phenotData$`initial treatment:ch1`),function(x) sum(as.character(Group[(as.character(UC_subtype)=="UC2") & (phenotData$`initial treatment:ch1` == x)])=="Yes")/sum((as.character(UC_subtype)=="UC2") & (phenotData$`initial treatment:ch1` == x))*100 )
+barplot(temp[levels(factor(phenotData$`initial treatment:ch1`))],ylim=c(0,100),las=1,col=pallete[3:5],ylab="% response to IFX",las=2)
+
+
+phenotData$`tissue:ch1`
+
+temp <- table(phenotData$`initial treatment:ch1`[(as.character(UC_subtype)=="UC1")])
+temp <- cbind(UC1=temp,UC2=table(phenotData$`initial treatment:ch1`[(as.character(UC_subtype)=="UC2")]))
+barplot(t(t(temp)/colSums(temp))*100,ylim=c(0,100),las=1,col=pallete[3:5],ylab="% response to IFX",las=2,main="all patients")
+
+barplot(t(temp/rowSums(temp))*100,ylim=c(0,100),las=1,col=pallete[1:2],ylab="% response to IFX",las=2,main="all patients")
+
+temp <- table(phenotData$`initial treatment:ch1`[(as.character(UC_subtype)=="UC1") & (phenotData$`week 4 remission:ch1`=="Yes")])
+temp <- cbind(UC1=temp,UC2=table(phenotData$`initial treatment:ch1`[(as.character(UC_subtype)=="UC2")& (phenotData$`week 4 remission:ch1`=="Yes")]))
+barplot(t(t(temp)/c(table(UC_subtype)) )*100,ylim=c(0,100),las=1,col=pallete[3:5],ylab="% response to IFX",las=2,main="responders only")
+
+plot(1,axes=F,xaxt="n",yaxt="n",type="n",xlab="",ylab="")
+legend("topleft",col = pallete[3:5],legend = levels(factor(phenotData$`initial treatment:ch1`)),pch = 16)
+
+temp <- table(phenotData$`initial treatment:ch1`[ (phenotData$`initial treatment:ch1`=="CS-Oral")])
+
+temp <- table(phenotData$`initial treatment:ch1`[(as.character(UC_subtype)=="UC1") & (phenotData$`week 4 remission:ch1`=="Yes")])
+
+sum((as.character(UC_subtype)=="UC1") & (phenotData$`week 4 remission:ch1`=="Yes"))
+
+subgroup <- paste(UC_subtype,phenotData$`initial treatment:ch1`,sep = "_")
+subg_resp <- sapply(unique(subgroup), function(x)  table(phenotData$`week 4 remission:ch1`[subgroup==x]) )
+subg_resp <- cbind(t(subg_resp),resp=round(t(subg_resp)/colSums(subg_resp)*100,2) )
+
+plot(1,axes=F,xaxt="n",yaxt="n",type="n",xlab="",ylab="")
+
+barplot(subg_resp[sort(rownames(subg_resp)),4],las=1,horiz=T,xlim=c(0,100),col = pallete[3:5],xlab="%response to IFX")
+text(c(70,70),c(2,5.5),c("UC1","UC2"),col=pallete[1:2],adj = 0,xpd=T,main="within group response")
+par(xpd=F)
+```
+
+
+
+
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=10,fig.show="hold",warning=FALSE}
+mypar(6,6,mar = c(0.1,0.1,0.1,0.1))
+
+set.seed(12345)
+tSNE <- Rtsne(t(t_data),perplexity = 20,pca = T,max_iter = 1000,theta = .1)
+#UC_subtype <- classify(t_data)
+plot(a[,1],a[,2],col=pallete[UC_subtype])
+
+model <- glm(UC_subtype~a,family="binomial")
+slope <- coef(model)[2]/(-coef(model)[3])
+intercept <- coef(model)[1]/(-coef(model)[3]) 
+
+#Sort genes by absolute fold-change
+ordered_list <- sort(apply(t_data,1,function(x) abs(mean(x[UC_subtype==levels(UC_subtype)[1]]) - mean(x[UC_subtype==levels(UC_subtype)[2]])) ),decreasing = T)
+
+for(i in names(ordered_list)){
+  grad <- (t_data[i,] - quantile(t_data[i,],.05)) / (quantile(t_data[i,],.95) - quantile(t_data[i,],.05))
+  grad[grad < 0] <- 0; grad[grad > 1] <- 1
+  plot(a[,1],a[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=colorRampPalette(c("grey90","grey80","navy"))(50)[grad*49+1],pch=as.numeric(UC_subtype)+15,line=.5,xlab="", ylab="",xlim=c(min(a[,1])*out,max(a[,1])*out),ylim=c(min(a[,2])*out,max(a[,2])*out),main=i)
+  axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+  text(min(a[,1])*out,max(a[,2])*out,i,adj=0,cex=1.5)
+  abline(c(intercept,slope),lty=2)}
+```
+
+
+
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=6}
+pdf("Metadata_plots.pdf",width = 8,height = 6,useDingbats = F)
+mypar(3,5)
+par(mar=c(2,2.5,2,3))
+temp <- sapply(levels(UC_subtype),function(x) sum(as.character(Group[as.character(UC_subtype)==x])=="Yes")/sum(as.character(UC_subtype)==x)*100 )
+barplot(temp,ylim=c(0,100),las=1,col=pallete[1:length(levels(UC_subtype))],ylab="% response to IFX")
+abline(h=0,lwd=3)
+
+barplot(100-temp,ylim=c(0,100),las=1,col=pallete[1:length(levels(UC_subtype))],ylab="% refractory to IFX")
+abline(h=0,lwd=3)
+
+barplot(rbind(temp,100-temp),ylim=c(0,100),las=1,col=c("dark green","pink"),ylab="% refractory to IFX",border=0)
+abline(h=0,lwd=3)
+plot(c(0,1),c(0,1),type="n",axes=F,xlab="",ylab="")
+legend(0,1,c("resp.","non-resp."),pch=15,pt.cex = 2,col =c("dark green","pink"),box.lwd = 0)
+
+
+
+temp <- sapply(levels(UC_subtype),function(x) sum(as.character(phenotData$`Sex:ch1`[as.character(UC_subtype)==x])=="Male")/sum(as.character(UC_subtype)==x)*100 )
+barplot(rbind(temp,100-temp),ylim=c(0,100),las=1,col=c("cyan4","pink2"),ylab="% refractory to IFX",border=0)
+abline(h=0,lwd=3)
+plot(c(0,1),c(0,1),type="n",axes=F,xlab="",ylab="")
+legend("topleft",c("Male","Female"),pch=15,pt.cex = 2,col =c("cyan4","pink2"),box.lwd = 0)
+
+
+
+temp <- sapply(levels(UC_subtype),function(x) sum(as.character(phenotData$`eosinophil grade ≥ 32:ch1`[as.character(UC_subtype)==x])=="Y",na.rm = T)/sum(!is.na(phenotData$`eosinophil grade ≥ 32:ch1`) )*100)
+barplot(rbind(temp,100-temp),ylim=c(0,100),las=1,col=c("red","grey"),ylab="% refractory to IFX",border=0)
+abline(h=0,lwd=3)
+plot(c(0,1),c(0,1),type="n",axes=F,xlab="",ylab="")
+legend("topleft",c(">32","<32"),pch=15,pt.cex = 2,col =c("red","grey"),box.lwd = 0)
+chisq.test(temp)
+
+
+
+
+rvar <- runif(n = length(UC_subtype),-.15,.15)
+boxplot(as.numeric(phenotData$`histology severity score:ch1`) ~ UC_subtype,border="grey",outline=F,col=paste0(pallete[1:2],10),ylim=c(0,5),las=1,ylab="histology severity score",main="Histological Score")
+beeswarm(as.numeric(phenotData$`histology severity score:ch1`)+runif(n = length(UC_subtype),-.2,.2) ~ UC_subtype,cex=.3,pch=16,add=T,col=pallete[1:2])
+stat <- signif(wilcox.test(as.numeric(phenotData$`histology severity score:ch1`) ~ UC_subtype)$p.value,3)
+text(1.5,4.7,ifelse(stat<.01,paste0("p = ",stat),"ns"))
+lines(c(1,2),c(4.3,4.3))
+
+
+rvar <- runif(n = length(UC_subtype),-.15,.15)
+boxplot(as.numeric(phenotData$`age at diagnosis:ch1`) ~ UC_subtype,border="grey",outline=F,col=paste0(pallete[1:2],10),las=1,ylab="age at diagnosis",main="age at diagnosis",ylim=c(0,20))
+beeswarm(as.numeric(phenotData$`age at diagnosis:ch1`)+runif(n = length(UC_subtype),-.3,.3) ~ UC_subtype,cex=.4,pch=16,add=T,col=pallete[1:2])
+stat <- signif(wilcox.test(as.numeric(phenotData$`age at diagnosis:ch1`) ~ UC_subtype)$p.value,3)
+text(1.5,19,ifelse(stat<.01,paste0("p = ",stat),"ns"))
+lines(c(1,2),c(18,18))
+
+rvar <- runif(n = length(UC_subtype),-.1,.1)
+boxplot(as.numeric(phenotData$`total mayo score:ch1`) ~ UC_subtype,border="grey",outline=F,col=paste0(pallete[1:2],10),las=1,ylab="Total Mayo Score",main="Total Mayo",ylim=c(0,14))
+beeswarm(as.numeric(phenotData$`total mayo score:ch1`)+runif(n = length(UC_subtype),-.15,.15) ~ UC_subtype,cex=.3,pch=16,add=T,col=pallete[1:2])
+stat <- signif(wilcox.test(as.numeric(phenotData$`total mayo score:ch1`) ~ UC_subtype)$p.value,3)
+text(1.5,14,ifelse(stat<.01,paste0("p = ",stat),"ns"))
+lines(c(1,2),c(13,13))
+
+
+rvar <- runif(n = length(UC_subtype),-.1,.1)
+boxplot(as.numeric(phenotData$`baseline calprotectin:ch1`) ~ UC_subtype,border="grey",outline=F,col=paste0(pallete[1:2],10),las=1,ylab="calprotectin",main="calprotectin",ylim=c(0,9000))
+beeswarm(as.numeric(phenotData$`baseline calprotectin:ch1`) ~ UC_subtype,cex=.3,pch=16,add=T,col=pallete[1:2])
+stat <- signif(wilcox.test(as.numeric(phenotData$`baseline calprotectin:ch1`) ~ UC_subtype)$p.value,3)
+text(1.5,8800,ifelse(stat<.01,paste0("p = ",stat),"ns"))
+lines(c(1,2),c(8200,8200))
+
+
+
+rvar <- runif(n = length(UC_subtype),-.1,.1)
+boxplot(as.numeric(phenotData$`pucai:ch1`) ~ UC_subtype,border="grey",outline=F,col=paste0(pallete[1:2],10),las=1,ylab="Pucai",main="Pucai",ylim=c(0,100))
+beeswarm(as.numeric(phenotData$`pucai:ch1`)+runif(n = length(UC_subtype),-1,1) ~ UC_subtype,cex=.3,pch=16,add=T,col=pallete[1:2])
+stat <- signif(wilcox.test(as.numeric(phenotData$`pucai:ch1`) ~ UC_subtype)$p.value,3)
+text(1.5,95,ifelse(stat<.01,paste0("p = ",stat),"ns"))
+lines(c(1,2),c(90,90))
+dev.off()
+```
+
+
+
+***
+###Computing differentially expressed genes between responders and non-responders
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=5,fig.show="hold",warning=FALSE}
+set <- ExpressionSet(as.matrix(data)); pData(set) <- phenotData
+design <- model.matrix(~UC_subtype)
+colnames(design) <- levels(UC_subtype)
+
+fit <- lmFit(set, design)
+fit <- contrasts.fit(fit,coefficients = 2)
+fit <- eBayes(fit)
+top <- topTable(fit,number = "all")
+
+# 
+# fit <- glmFit(y, design)
+# lrt <- glmLRT(fit)
+# top <- topTags(lrt,adjust.method = "BH",n = "all",sort.by = "p.value")[[1]]
+# colnames(top) <- sub("Groupday","d",colnames(top))
+# head(top,50)
+
+pValue <- as.matrix(top)[,"P.Value"]
+pValue[pValue==0] <- min(pValue[pValue!=0])
+logFC <- as.matrix(top)[,"logFC"]
+FDR <- as.matrix(top)[,"adj.P.Val"]
+FDR[FDR==0] <- min(FDR[FDR!=0])
+
+pT <- 10
+lT <- .7
+  
+top_DE <- rownames(top)[ifelse(abs(logFC) < lT,FALSE,ifelse(-log10(FDR) < pT,FALSE,TRUE))]
+
+write.csv(top,"DEGs_UC1_vs_UC2.csv",row.names = T)
+write.csv(top[top_DE,],"top_DEGs_UC1_vs_UC2.csv",row.names = T)
+
+mypar(1,2)
+plot(logFC,-log10(FDR),pch=16,xlim=c(-4,4),col=ifelse(names(logFC) %in% top_DE,"red","black"),cex=.6,yaxs="i",ylim=c(0,max(-log10(FDR))*1.1 ),las=1)
+abline(v=c(-lT,lT),h=pT,lty=5,col="grey50")
+
+plot(logFC,-log10(FDR),pch=16,xlim=c(-4,4),col=ifelse(names(logFC) %in% top_DE,"red","black"),cex=.6,yaxs="i",ylim=c(0,max(-log10(FDR))*1.1 ),las=1)
+abline(v=c(-lT,lT),h=pT,lty=5,col="grey50")
+text(logFC[top_DE],-log10(FDR)[top_DE],top_DE,pos=3,cex=.4)
+
+cat(paste0("\n","All top DEGs","\n"))
+print(top_DE)
+
+cat(paste0("\n","Top-20 DEGs","\n"))
+print(top_DE[1:20])
+
+
+
+#COMPUTING THE ACCURACY OF DICRIMINATION
+AUC <- sapply(names(FDR),function(x){
+  model <- glm((UC_subtype=="UC1") ~ data[x,],family = "binomial")
+  x <- round(confusionMatrix(factor(ifelse(model$linear.predictors > .5,"UC1","UC2")), UC_subtype)$overall[[1]]*100,2)
+})
+
+mypar(1,2)
+plot(logFC[names(AUC)],AUC,pch=16,cex=.5,ylim=c(50,100),yaxs="i",las=1,xlim=c(-4,4),xaxs="i",col=ifelse(names(AUC)%in%top_DE,"red","black"),xlab="logFC",ylab="% Accuracy")
+abline(v=c(-lT,lT),h=80,lty=5,col="grey50")
+
+plot(-log10(FDR[names(AUC)]),AUC,pch=16,cex=.5,ylim=c(50,100),xlim=c(0,max(-log10(FDR[names(AUC)]))),yaxs="i",las=1,col=ifelse(names(AUC)%in%top_DE,"red","black"),xlab="-log10(FDR)",ylab="% Accuracy")
+abline(v=pT,h=80,lty=5,col="grey50")
+
+```
+
+
+
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=7}
+par(mar=c(2,6,3,1),mfrow=c(1,4))
+
+barplot(top_rowVAR[100:1],horiz=T,las=1,col=ifelse(names(top_rowVAR[100:1]) %in% rownames(cPC),"red","grey"),xlim=c(0,max(top_rowVAR[100:1])*1.4),yaxs="i",xaxs="i",main="human rowVar",xlab="variance",border=NA)
+legend("bottomright",c("found\nin mouse"),pch = 22,bty = "n",pt.bg = "red",pt.cex = 2)
+sum(names(top_rowVAR[100:1]) %in% rownames(cPC))/length(names(top_rowVAR[100:1]))*100
+
+barplot(top_rowVAR[100:1],horiz=T,las=1,col=ifelse(names(top_rowVAR[100:1]) %in% top_DE,pallete[2],"grey"),xlim=c(0,max(top_rowVAR[100:1])*1.4),yaxs="i",xaxs="i",main="human rowVar",xlab="variance",border=NA)
+legend("bottomright",c("top DEGs"),pch = 22,bty = "n",pt.bg = pallete[2],pt.cex = 2)
+sum(names(top_rowVAR[100:1]) %in% top_DE)/length(names(top_rowVAR[100:1]))*100
+
+temp <- sort(rowVAR,decreasing = T)
+barplot(temp[names(temp) %in% rownames(cPC)][nrow(cPC):1],horiz=T,las=1,col="red",xlim=c(0,max(temp)*1.4),yaxs="i",xaxs="i",main="human rowVar (only mouse genes)",xlab="variance",border=NA)
+legend("bottomright",c("found\nin mouse"),pch = 22,bty = "n",pt.bg = "red",pt.cex = 2)
+sum(rownames(cPC) %in% top_DE)/length(rownames(cPC))*100
+
+barplot(top_rowCV[100:1],horiz=T,las=1,col=ifelse(names(top_rowCV[100:1]) %in% top_DE,"red","grey"),xlim=c(0,max(top_rowCV[100:1])*1.4),yaxs="i",xaxs="i",main="human rowCV",xlab="CV",border=NA)
+legend("bottomright",c("found\nin mouse"),pch = 22,bty = "n",pt.bg = "red",pt.cex = 2)
+sum(names(top_rowCV[100:1]) %in% top_DE)/length(names(top_rowCV[100:1]))*100
+```
+
+
+
+```{r results="hold", message=F, warning=FALSE, fig.width=7, warning=F, fig.height=10}
+mypar()
+ann_groups <- data.frame(ann_groups=UC_subtype,row.names=colnames(data))
+tag_colors <- pallete[1:length(levels(UC_subtype))]; names(tag_colors) <- unique(ann_groups)[[1]]
+
+
+pheatmap(data[top_DE,order(UC_subtype)],col=colorRampPalette(c("navy","navy","white","firebrick","firebrick"))(50),clustering_method = "ward.D2",border_color = NA,scale = "row",annotation_col = as.data.frame(ann_groups), annotation_colors =  list(ann_groups = tag_colors),clustering_distance_cols = "correlation")
+```
+
+
+
+#Comparison of new results to the old ones
+```{r results="hold", message=F, warning=FALSE, fig.width=10, warning=F, fig.height=3.3}
+par(mar=c(2,3,2,2),mfrow=c(1,3))
+old <- read.csv("../20180423 - Merged datasets/DEGs_UC1_vs_UC2.csv",row.names = 1)
+sel <- rownames(old)[ifelse(abs(old$logFC) < lT,FALSE,ifelse(-log10(old$adj.P.Val) < pT,FALSE,TRUE))]
+
+b <- venn(list("RNAseq"=top_DE,"microarray"=sel))
+b <- attributes(b)
+print(b$intersections$`RNAseq:microarray`)
+write.csv(as.data.frame(do.call(rbind,lapply(b$intersections, `length<-`, max(sapply(b$intersections, length))))),paste0("venn_genes_microarray_vs_RNAseq.csv"),row.names = T,na = "")
+
+
+
+#Plot association between p-values 
+plot(1,1,frame.plot=F,xlim=c(0.5,3.5),ylim=c(0,35),las=1,xaxt="n",xlab="",ylab="-log10(FDR)",type="n" )
+for (i in b$intersections$`RNAseq:microarray`){
+  lines(c(1,3),-log10( c(old[i,"adj.P.Val"],top[i,"adj.P.Val"])),col="grey" )
+}
+points(c(rep(1,length(sel)) ,rep(3,length(top_DE))) ,-log10(c(old[sel,"adj.P.Val"],top[top_DE,"adj.P.Val"])),
+       col=)
+abline(h=4,col="red",lty=2)
+mtext(c("microarray\n(n=102)","RNAseq\n(n=206)"),side = 1,at=c(1,3))
+
+
+
+#Plot association between fold changes
+plot(1,1,frame.plot=F,xlim=c(0.5,3.5),ylim=c(-4,4),las=1,xaxt="n",xlab="",ylab="log2(FC)",type="n" )
+for (i in b$intersections$`RNAseq:microarray`){
+  lines(c(1,3),c(old[i,"logFC"],top[i,"logFC"]),col="grey" )
+}
+points(c(rep(1,length(sel)) ,rep(3,length(top_DE))) ,c(old[sel,"logFC"],top[top_DE,"logFC"]))
+abline(h=c(.6,-.6),col="red",lty=2)
+mtext(c("microarray\n(n=102)","RNAseq\n(n=206)"),side = 1,at=c(1,3))
+```
+
+
+
+
+
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=10,fig.show="hold",warning=FALSE}
+mypar(6,6,mar = c(0.1,0.1,0.1,0.1))
+
+#Sort genes by absolute fold-change
+ordered_list <- sort(logFC[top_DE])
+
+for(i in names(ordered_list)){
+  grad <- (data[i,] - quantile(data[i,],.05)) / (quantile(data[i,],.95) - quantile(data[i,],.05))
+  grad[grad < 0] <- 0; grad[grad > 1] <- 1
+  plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=colorRampPalette(c("grey90","grey80","navy"))(50)[grad*49+1],pch=as.numeric(UC_subtype)+15,line=.5,xlab="", ylab="",xlim=c(min(tSNE$Y[,1])*out,max(tSNE$Y[,1])*out),ylim=c(min(tSNE$Y[,2])*out,max(tSNE$Y[,2])*out),main=i)
+  axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
+  text(min(tSNE$Y[,1])*out,max(tSNE$Y[,2])*out,i,adj=0,cex=1.5)
+  abline(c(intercept,slope),lty=2)}
+```
+
+
+
+
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=10,fig.show="hold",warning=FALSE}
+mypar(6,8)
+mypar(6,8,mar = c(2,2,2,1))
+
+
+#Sort genes by absolute fold-change
+ordered_list <- sort(logFC[top_DE])
+
+for(i in names(ordered_list)){
+  my_violins(data[i,],UC_subtype,main = i,color = pallete)}
+```
+
+
+
+```{r, results="hide", message=F, fig.width=10,warning=F,fig.height=4,fig.show="hold",warning=FALSE}
+AUC <- sapply(top_DE,function(x){
+  model <- glm((UC_subtype=="UC1") ~ data[x,],family = "binomial")
+  x <- round(confusionMatrix(factor(ifelse(model$linear.predictors > .5,"UC1","UC2")), UC_subtype)$overall[[1]]*100,2)
+})
+
+mypar(2,5)
+for(i in names(sort(logFC[top_DE]))){
+  model <- glm((UC_subtype=="UC1") ~ data[i,],family = "binomial")
+plot(data[i,],as.numeric(model$fitted.values),col=pallete[UC_subtype],pch=16,las=1,main=i,ylab="LR fitted values",xaxs="i",xlab="expression level")
+text(min(data[i,]),.95,round(AUC[i],2),adj = 0)
+abline(h=0.5,lty=2)
+}
+```
+
+
+```{r, results="hide", message=F, fig.width=4,warning=F,fig.height=4,fig.show="hold",warning=FALSE}
+par(mfrow=c(1,1),mar=c(3,5,3,3))
+temp <- sort(AUC,decreasing = T)
+barplot(temp[c(40:1)],horiz=T,xlim=c(0,100),xaxs="i",las=1,cex.names=.5,xlab="% Accuracy",border=NA,col=colorRampPalette(c("grey80","navy"))(40)[1:40] )
+```
+
+

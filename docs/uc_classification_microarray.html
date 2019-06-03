@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Paulo Czarnewski" />
+
+<meta name="date" content="2019-05-30" />
+
+<title>UC classification (microarray datasets)</title>
+
+<script src="uc_classification_microarray_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="uc_classification_microarray_files/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="uc_classification_microarray_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="uc_classification_microarray_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="uc_classification_microarray_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="uc_classification_microarray_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="uc_classification_microarray_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="uc_classification_microarray_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="uc_classification_microarray_files/navigation-1.1/tabsets.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #f8f8f8; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+pre, code { background-color: #f8f8f8; }
+code > span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code > span.dt { color: #204a87; } /* DataType */
+code > span.dv { color: #0000cf; } /* DecVal */
+code > span.bn { color: #0000cf; } /* BaseN */
+code > span.fl { color: #0000cf; } /* Float */
+code > span.ch { color: #4e9a06; } /* Char */
+code > span.st { color: #4e9a06; } /* String */
+code > span.co { color: #8f5902; font-style: italic; } /* Comment */
+code > span.ot { color: #8f5902; } /* Other */
+code > span.al { color: #ef2929; } /* Alert */
+code > span.fu { color: #000000; } /* Function */
+code > span.er { color: #a40000; font-weight: bold; } /* Error */
+code > span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #000000; } /* Constant */
+code > span.sc { color: #000000; } /* SpecialChar */
+code > span.vs { color: #4e9a06; } /* VerbatimString */
+code > span.ss { color: #4e9a06; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #000000; } /* Variable */
+code > span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code > span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code > span.ex { } /* Extension */
+code > span.at { color: #c4a000; } /* Attribute */
+code > span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code > span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">UC classification (microarray datasets)</h1>
+<h3 class="subtitle">Czarnewski et al 2019</h3>
+<h4 class="author">Paulo Czarnewski</h4>
+<h4 class="date">30 May 2019</h4>
+
+</div>
+
+
+<div id="load-packages" class="section level1">
+<h1><span class="header-section-number">1</span> Load Packages</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Source my custom functions</span>
+<span class="kw">source</span>(<span class="st">&quot;support_functions.R&quot;</span>)
+
+<span class="co">#Install and load packages</span>
+<span class="kw">inst_packages</span>(<span class="kw">c</span>(<span class="st">&quot;annotate&quot;</span>,<span class="st">&quot;hgu133plus2.db&quot;</span>,<span class="st">&quot;Biobase&quot;</span>,<span class="st">&quot;Rtsne&quot;</span>,<span class="st">&quot;GEOquery&quot;</span>,<span class="st">&quot;rafalib&quot;</span>,<span class="st">&quot;multcomp&quot;</span>,<span class="st">&quot;RColorBrewer&quot;</span>,<span class="st">&quot;preprocessCore&quot;</span>,<span class="st">&quot;data.table&quot;</span>,<span class="st">&quot;limma&quot;</span>,<span class="st">&quot;pheatmap&quot;</span>,<span class="st">&quot;ROCR&quot;</span>,<span class="st">&quot;epitools&quot;</span>,<span class="st">&quot;beeswarm&quot;</span>,<span class="st">&quot;EDASeq&quot;</span>,<span class="st">&quot;vioplot&quot;</span>,<span class="st">&quot;caret&quot;</span>,<span class="st">&quot;pROC&quot;</span>,<span class="st">&quot;e1071&quot;</span>,<span class="st">&quot;car&quot;</span>,<span class="st">&quot;clustertend&quot;</span>,<span class="st">&quot;seriation&quot;</span>,<span class="st">&quot;factoextra&quot;</span>,<span class="st">&quot;enrichR&quot;</span>))
+
+
+<span class="co">#Define color pallete</span>
+pallete &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">brewer.pal</span>(<span class="dv">8</span>,<span class="st">&quot;Set2&quot;</span>),<span class="kw">brewer.pal</span>(<span class="dv">9</span>,<span class="st">&quot;Set1&quot;</span>))[<span class="dv">2</span><span class="op">:</span><span class="dv">8</span>]
+pallete2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">brewer.pal</span>(<span class="dv">8</span>,<span class="st">&quot;Set2&quot;</span>),<span class="kw">brewer.pal</span>(<span class="dv">9</span>,<span class="st">&quot;Set1&quot;</span>))
+color &lt;-<span class="st"> </span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;gray&quot;</span>,<span class="st">&quot;red&quot;</span>,<span class="st">&quot;blue&quot;</span>))(<span class="dv">10</span>)
+
+<span class="co">#homologs &lt;- fread(&#39;http://www.informatics.jax.org/downloads/reports/HMD_HumanPhenotype.rpt&#39;)</span>
+<span class="co">#homologs &lt;- data.frame(&quot;mouse&quot;=homologs$V5,&quot;human&quot;=homologs$V1)</span>
+homologs &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/homologs.csv&quot;</span>,<span class="dt">row.names =</span> <span class="dv">1</span>)</code></pre></div>
+<hr />
+</div>
+<div id="loading-human-dataset-from-geo" class="section level1">
+<h1><span class="header-section-number">2</span> Loading Human dataset from GEO</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#List of GSE to use in the anlaysis</span>
+GEOs &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;GSE12251&quot;</span>,<span class="st">&quot;GSE73661&quot;</span>,<span class="st">&quot;GSE23597&quot;</span>,<span class="st">&quot;GSE16879&quot;</span>)
+
+<span class="co">#Load all GSEs and save to a local files for later easy load</span>
+<span class="cf">for</span>(i <span class="cf">in</span> GEOs){
+<span class="cf">if</span>(<span class="op">!</span><span class="kw">file.exists</span>(<span class="kw">paste0</span>(<span class="st">&quot;../downloaded/&quot;</span>,i,<span class="st">&quot;.annot&quot;</span>)) <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">file.exists</span>(<span class="kw">paste0</span>(i,<span class="st">&quot;.gset&quot;</span>))){
+  gset &lt;-<span class="st"> </span><span class="kw">getGEO</span>(i,<span class="dt">GSEMatrix =</span><span class="ot">TRUE</span>, <span class="dt">getGPL =</span> T,<span class="dt">AnnotGPL =</span> T)[[<span class="dv">1</span>]]
+  annot &lt;-<span class="st"> </span><span class="kw">fData</span>(gset)
+  <span class="kw">save</span>(annot,<span class="dt">file =</span> <span class="kw">paste0</span>(i,<span class="st">&quot;.annot&quot;</span>))
+  <span class="kw">save</span>(gset,<span class="dt">file =</span> <span class="kw">paste0</span>(i,<span class="st">&quot;.gset&quot;</span>))
+  <span class="kw">write.csv</span>(<span class="kw">as.data.frame</span>(<span class="kw">pData</span>(gset)),<span class="kw">paste0</span>(i,<span class="st">&quot; pData.csv&quot;</span>),<span class="dt">row.names =</span> T) }}
+
+<span class="co">#Load gset and annot files to the environment</span>
+<span class="cf">for</span>(i <span class="cf">in</span> GEOs){
+  <span class="kw">load</span>(<span class="kw">paste0</span>(<span class="st">&quot;../downloaded/&quot;</span>,i,<span class="st">&quot;.gset&quot;</span>))
+  <span class="kw">assign</span>(<span class="kw">paste0</span>(<span class="st">&quot;gset&quot;</span>,i), gset)
+  <span class="kw">load</span>(<span class="kw">paste0</span>(<span class="st">&quot;../downloaded/&quot;</span>,i,<span class="st">&quot;.annot&quot;</span>))
+  <span class="kw">assign</span>(<span class="kw">paste0</span>(<span class="st">&quot;annot&quot;</span>,i),annot) }
+
+<span class="co">#ADJUST GENE NAMES AND REMOVE DUPLICATED GENES</span>
+<span class="cf">for</span>(i <span class="cf">in</span> GEOs){
+  annot &lt;-<span class="st"> </span><span class="kw">get</span>(<span class="kw">paste0</span>(<span class="st">&quot;annot&quot;</span>,i))
+  annot &lt;-<span class="st"> </span>annot[annot<span class="op">$</span><span class="st">`</span><span class="dt">Gene symbol</span><span class="st">`</span> <span class="op">!=</span><span class="st"> &quot;&quot;</span>,]
+  annot &lt;-<span class="st"> </span>annot[<span class="kw">grep</span>(<span class="st">&quot;///&quot;</span>,annot<span class="op">$</span><span class="st">`</span><span class="dt">Gene symbol</span><span class="st">`</span>,<span class="dt">invert =</span> T),]
+  data &lt;-<span class="st"> </span><span class="kw">exprs</span>(<span class="kw">get</span>(<span class="kw">paste0</span>(<span class="st">&quot;gset&quot;</span>,i)))[<span class="kw">as.character</span>(annot<span class="op">$</span>ID),]
+  <span class="kw">rownames</span>(data) &lt;-<span class="st"> </span>annot<span class="op">$</span><span class="st">`</span><span class="dt">Gene symbol</span><span class="st">`</span>
+  data &lt;-<span class="st"> </span>data[<span class="op">!</span><span class="kw">duplicated</span>(<span class="kw">rownames</span>(data)),]
+  data &lt;-<span class="st"> </span>data[<span class="kw">order</span>(<span class="kw">rownames</span>(data)),]
+  <span class="kw">assign</span>(<span class="kw">paste0</span>(<span class="st">&quot;data&quot;</span>,i),data) }
+
+<span class="co">#Free some space by removing the raw annot and temporary files</span>
+<span class="kw">rm</span>(<span class="dt">list =</span> <span class="kw">c</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;annot&quot;</span>,<span class="st">&quot;gset&quot;</span>,<span class="kw">paste0</span>(<span class="st">&quot;annot&quot;</span>,GEOs)))</code></pre></div>
+<hr />
+</div>
+<div id="evaluation-of-data-distribution" class="section level1">
+<h1><span class="header-section-number">3</span> Evaluation of data distribution</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#tansform all data to LOG scale</span>
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">4</span>)
+<span class="cf">for</span> (i <span class="cf">in</span> GEOs){
+  data &lt;-<span class="st"> </span><span class="kw">get</span>(<span class="kw">paste0</span>(<span class="st">&quot;data&quot;</span>,i))
+  <span class="cf">if</span> (<span class="kw">max</span>(data) <span class="op">&gt;</span><span class="st"> </span><span class="dv">50</span>){ data &lt;-<span class="st"> </span><span class="kw">log</span>(data<span class="op">+</span><span class="dv">1</span>,<span class="dv">2</span>) }
+  filter &lt;-<span class="st"> </span><span class="kw">apply</span>(data,<span class="dv">1</span>,<span class="cf">function</span>(x){ <span class="kw">sum</span>(x<span class="op">&gt;</span><span class="dv">6</span>) <span class="op">&gt;</span><span class="st"> </span><span class="kw">ncol</span>(data)<span class="op">*</span><span class="fl">0.2</span> })
+  data &lt;-<span class="st"> </span>data[filter,]
+  <span class="kw">shist</span>(data,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">5</span>,<span class="dv">17</span>),<span class="dt">main=</span>i,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>)
+  <span class="kw">assign</span>(<span class="kw">paste0</span>(<span class="st">&quot;data&quot;</span>,i),data) }
+
+<span class="co">#Merge datasets</span>
+genes_in_common &lt;-<span class="st"> </span><span class="kw">c</span>()
+<span class="cf">for</span>(i <span class="cf">in</span> GEOs){
+  <span class="cf">if</span>(<span class="kw">length</span>(genes_in_common)<span class="op">==</span><span class="dv">0</span>){ genes_in_common &lt;-<span class="st"> </span><span class="kw">rownames</span>(<span class="kw">get</span>(<span class="kw">paste0</span>(<span class="st">&quot;data&quot;</span>,i)))
+  } <span class="cf">else</span> { genes_in_common &lt;-<span class="st"> </span>genes_in_common[genes_in_common <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(<span class="kw">get</span>(<span class="kw">paste0</span>(<span class="st">&quot;data&quot;</span>,i)))] } }
+
+data &lt;-<span class="st"> </span><span class="kw">matrix</span>()
+<span class="cf">for</span>(i <span class="cf">in</span> GEOs){
+  <span class="cf">if</span>(<span class="kw">dim</span>(data)[<span class="dv">1</span>] <span class="op">==</span><span class="st"> </span><span class="dv">1</span>){ data &lt;-<span class="st"> </span><span class="kw">get</span>(<span class="kw">paste0</span>(<span class="st">&quot;data&quot;</span>,i))[genes_in_common,]
+  } <span class="cf">else</span> { data &lt;-<span class="st"> </span><span class="kw">cbind</span>(data,<span class="kw">get</span>(<span class="kw">paste0</span>(<span class="st">&quot;data&quot;</span>,i))[genes_in_common,]) }}</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="loading-phenotipic-data" class="section level1">
+<h1><span class="header-section-number">4</span> Loading phenotipic data</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#CONSTRUCT A SIMPLIFIED PHENOTIPIC DATA FOR FURTHER ANALYSIS</span>
+phenotData &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/merged_phenodata.csv&quot;</span>,<span class="dt">row.names =</span> <span class="dv">1</span>)
+
+use_groups &lt;-<span class="st"> </span>(phenotData<span class="op">$</span><span class="st">&#39;week..w..ch1&#39;</span> <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;W0&quot;</span>)) 
+Group &lt;-<span class="st"> </span><span class="kw">factor</span>(phenotData<span class="op">$</span>resp[use_groups])
+phenotData &lt;-<span class="st"> </span>phenotData[use_groups,]
+
+<span class="co">#Re-order the samples based on their group on the phenotypic dataset</span>
+data &lt;-<span class="st"> </span>data[,<span class="kw">rownames</span>(phenotData)]
+
+<span class="kw">library</span>(sva)
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">4</span>)
+limma<span class="op">::</span><span class="kw">plotMA</span>(data,<span class="dt">main=</span><span class="st">&quot;MAplot&quot;</span>,<span class="dt">xlab =</span> <span class="st">&quot;Average log-expression&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;Expression log-ratio&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">5</span>,<span class="dv">5</span>),<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">5</span>,<span class="dv">17</span>)); <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lty=</span><span class="dv">2</span>,<span class="dt">lwd=</span><span class="dv">1</span>)
+<span class="kw">plotMDS</span>(data,<span class="dt">col=</span><span class="kw">as.numeric</span>(phenotData<span class="op">$</span>GEO),<span class="dt">pch=</span><span class="dv">16</span>)
+
+modCombat &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="dv">1</span>,<span class="dt">data=</span>phenotData)
+combat_edata &lt;-<span class="st"> </span><span class="kw">ComBat</span>(<span class="dt">dat=</span>data,<span class="dt">batch=</span>phenotData<span class="op">$</span>GEO,<span class="dt">mod=</span>modCombat)
+
+limma<span class="op">::</span><span class="kw">plotMA</span>(combat_edata,<span class="dt">xlab =</span> <span class="st">&quot;Average log-expression&quot;</span>, <span class="dt">main=</span><span class="st">&quot;MAplot (after ComBat)&quot;</span>,<span class="dt">ylab =</span> <span class="st">&quot;Expression log-ratio&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">5</span>,<span class="dv">5</span>),<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">5</span>,<span class="dv">17</span>)); <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lty=</span><span class="dv">2</span>,<span class="dt">lwd=</span><span class="dv">1</span>)
+<span class="kw">plotMDS</span>(combat_edata,<span class="dt">col=</span><span class="kw">as.numeric</span>(phenotData<span class="op">$</span>GEO),<span class="dt">pch=</span><span class="dv">16</span>)
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">1</span>)
+<span class="kw">plotRLE</span>(data,<span class="dt">col=</span><span class="kw">as.factor</span>(phenotData<span class="op">$</span>GEO),<span class="dt">outline=</span>F,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>, <span class="dt">main=</span><span class="kw">paste0</span>(<span class="st">&quot;RLE&quot;</span>),<span class="dt">las=</span><span class="dv">2</span>,<span class="dt">cex.axis=</span><span class="fl">0.5</span>,<span class="dt">cex.main=</span><span class="fl">0.8</span>,<span class="dt">cex=</span><span class="fl">0.1</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>,<span class="fl">0.3</span>))
+
+combat_edata &lt;-<span class="st"> </span><span class="kw">normalizeBetweenArrays</span>(combat_edata, <span class="dt">method =</span> <span class="st">&quot;cyclicloess&quot;</span>)
+data &lt;-<span class="st"> </span>combat_edata
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">1</span>)
+<span class="kw">plotRLE</span>(combat_edata,<span class="dt">col=</span><span class="kw">as.factor</span>(phenotData<span class="op">$</span>GEO), <span class="dt">outline=</span>F,<span class="dt">main=</span><span class="kw">paste0</span>(<span class="st">&quot;RLE (after ComBat)&quot;</span>),<span class="dt">las=</span><span class="dv">2</span>,<span class="dt">cex.axis=</span><span class="fl">0.5</span>,<span class="dt">cex.main=</span><span class="fl">0.8</span>,<span class="dt">cex=</span><span class="fl">0.1</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.2</span>,<span class="fl">0.2</span>))
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">4</span>)
+<span class="kw">shist</span>(combat_edata,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">5</span>,<span class="dv">17</span>),<span class="dt">main=</span><span class="st">&quot;All together&quot;</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-4-1.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-4-2.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-4-3.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-4-4.png" width="960" /></p>
+<hr />
+</div>
+<div id="load-plot-series-function" class="section level1">
+<h1><span class="header-section-number">5</span> Load plot series function</h1>
+<p>Here, we created a series of plots to explore the data with ease. Therefore, we can simply source that function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">source</span>(<span class="st">&quot;plot_functions.R&quot;</span>)</code></pre></div>
+<hr />
+</div>
+<div id="selecting-the-top-variable-genes" class="section level1">
+<h1><span class="header-section-number">6</span> Selecting the top variable genes</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rowVAR &lt;-<span class="st"> </span><span class="kw">apply</span>(data,<span class="dv">1</span>,<span class="cf">function</span>(x){<span class="kw">var</span>(x)})
+top_rowVAR &lt;-<span class="st"> </span><span class="kw">sort</span>(rowVAR,<span class="dt">decreasing =</span> T)[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>]
+<span class="co">#barplot(top_rowVAR[20:1],horiz=T,las=1,xlab=&quot;variance&quot;,yaxs=&quot;i&quot;,xaxs=&quot;i&quot;,xlim=c(0,1.5*max(top_rowVAR[20:1])),border=NA)</span>
+VAR_select &lt;-<span class="st"> </span><span class="kw">names</span>(top_rowVAR)
+d_VAR &lt;-<span class="st"> </span>data[VAR_select,]
+<span class="kw">suppressWarnings</span>(<span class="kw">plot_series</span>(d_VAR))</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="selecting-the-top-cv-genes" class="section level1">
+<h1><span class="header-section-number">7</span> Selecting the top CV genes</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rowCV &lt;-<span class="st"> </span><span class="kw">apply</span>(data,<span class="dv">1</span>,<span class="cf">function</span>(x){<span class="kw">var</span>(x)<span class="op">/</span><span class="kw">mean</span>(x)})
+top_rowCV &lt;-<span class="st"> </span><span class="kw">sort</span>(rowCV,<span class="dt">decreasing =</span> T)[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>]
+<span class="co">#barplot(top_rowCV[20:1],horiz=T,las=1,xlab=&quot;variance&quot;,yaxs=&quot;i&quot;,xaxs=&quot;i&quot;,xlim=c(0,1.5*max(top_rowCV[20:1])),border=NA)</span>
+CV_select &lt;-<span class="st"> </span><span class="kw">names</span>(top_rowCV)
+d_CV &lt;-<span class="st"> </span>data[CV_select,]
+<span class="kw">suppressWarnings</span>(<span class="kw">plot_series</span>(d_CV))</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="selecting-the-top-human-genes-by-pca" class="section level1">
+<h1><span class="header-section-number">8</span> Selecting the top human genes by PCA</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">PC &lt;-<span class="st"> </span><span class="kw">prcomp</span>(<span class="kw">t</span>(data))
+
+<span class="kw">round</span>(PC<span class="op">$</span>sdev<span class="op">^</span><span class="dv">2</span> <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(PC<span class="op">$</span>sdev<span class="op">^</span><span class="dv">2</span>) <span class="op">*</span><span class="dv">100</span>,<span class="dv">2</span>)
+<span class="kw">dim</span>(PC<span class="op">$</span>x)
+x &lt;-<span class="st"> </span>PC<span class="op">$</span>rotation[<span class="kw">order</span>(PC<span class="op">$</span>rotation[,<span class="dv">1</span>]),<span class="dv">1</span>][<span class="dv">20</span><span class="op">:</span><span class="dv">1</span>]
+<span class="co">#barplot(x,horiz=T,las=1,xlab=&quot;variance&quot;,yaxs=&quot;i&quot;,xaxs=&quot;i&quot;,xlim=c(0,1.5*max(x)),border=NA)</span>
+<span class="co">#diptest::dip.test(data[names(PC$rotation[,1][order(PC$rotation[,1])][100:1]),])</span>
+<span class="co">#mypar(mar=c(4,6,2,2))</span>
+<span class="co">#barplot(top_rowVAR[20:1],horiz=T,las=1,xlab=&quot;variance&quot;)</span></code></pre></div>
+<pre><code>##   [1] 24.49  9.39  4.80  4.27  3.74  2.85  2.78  2.61  2.34  2.07  1.84
+##  [12]  1.81  1.64  1.54  1.35  1.30  1.26  1.17  1.11  1.06  1.04  1.00
+##  [23]  0.94  0.93  0.88  0.87  0.83  0.80  0.77  0.74  0.74  0.72  0.71
+##  [34]  0.68  0.66  0.63  0.60  0.59  0.58  0.55  0.54  0.53  0.52  0.48
+##  [45]  0.46  0.46  0.46  0.44  0.43  0.42  0.41  0.40  0.39  0.37  0.35
+##  [56]  0.34  0.32  0.31  0.30  0.28  0.25  0.25  0.23  0.22  0.22  0.21
+##  [67]  0.20  0.19  0.18  0.18  0.16  0.16  0.15  0.14  0.13  0.13  0.12
+##  [78]  0.03  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+##  [89]  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+## [100]  0.00  0.00  0.00
+## [1] 102 102</code></pre>
+<hr />
+</div>
+<div id="computing-clustering-tendency-by-the-different-methods-of-gene-selection" class="section level1">
+<h1><span class="header-section-number">9</span> Computing clustering tendency by the different methods of gene selection</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp2 &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){
+  k &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">colnames</span>(data),<span class="kw">round</span>(<span class="kw">ncol</span>(data)<span class="op">*</span>.<span class="dv">9</span>),<span class="dt">replace =</span> F)
+  temp2[[<span class="st">&quot;all&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp2[[<span class="st">&quot;all&quot;</span>]], diptest<span class="op">::</span><span class="kw">dip.test</span>(data[,k])<span class="op">$</span>p.value )
+  temp2[[<span class="st">&quot;var.&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp2[[<span class="st">&quot;var.&quot;</span>]], diptest<span class="op">::</span><span class="kw">dip.test</span>(d_VAR[,k])<span class="op">$</span>p.value )
+  temp2[[<span class="st">&quot;disp.&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp2[[<span class="st">&quot;disp.&quot;</span>]], diptest<span class="op">::</span><span class="kw">dip.test</span>(d_CV[,k])<span class="op">$</span>p.value )
+  temp2[[<span class="st">&quot;PC1&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp2[[<span class="st">&quot;PC1&quot;</span>]], diptest<span class="op">::</span><span class="kw">dip.test</span>(data[<span class="kw">names</span>(PC<span class="op">$</span>rotation[<span class="kw">order</span>(PC<span class="op">$</span>rotation[,<span class="dv">1</span>]),<span class="dv">1</span>][<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>]),][,k])<span class="op">$</span>p.value )
+  temp2[[<span class="st">&quot;PC2&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp2[[<span class="st">&quot;PC2&quot;</span>]], diptest<span class="op">::</span><span class="kw">dip.test</span>(data[<span class="kw">names</span>(PC<span class="op">$</span>rotation[<span class="kw">order</span>(PC<span class="op">$</span>rotation[,<span class="dv">2</span>]),<span class="dv">2</span>][<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>]),][,k])<span class="op">$</span>p.value )
+}
+
+
+<span class="kw">mypar</span>()
+<span class="kw">boxplot</span>(temp2,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="fl">1.1</span>),<span class="dt">las=</span><span class="dv">2</span>,<span class="dt">col=</span><span class="kw">paste0</span>(pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>],<span class="st">&quot;30&quot;</span>) ,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;Hartigan&#39;s unimodality p.value&quot;</span>,<span class="dt">lines=</span><span class="dv">2</span>)
+<span class="co">#beeswarm(temp2,add = T,bg=pallete[3:4],pch=21,cex=2)</span>
+<span class="kw">points</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">2</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">3</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">4</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">5</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all))),
+       <span class="kw">c</span>(temp2<span class="op">$</span>all,temp2<span class="op">$</span>var.,temp2<span class="op">$</span>disp.,temp2<span class="op">$</span>PC1,temp2<span class="op">$</span>PC2),<span class="dt">pch=</span><span class="dv">21</span>,
+       <span class="dt">bg=</span>pallete[<span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">2</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">3</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">4</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)),<span class="kw">rep</span>(<span class="dv">5</span>,<span class="kw">length</span>(temp2<span class="op">$</span>all)))])</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-10-1.png" width="192" /></p>
+<hr />
+</div>
+<div id="using-mouse-pc1-and-pc2-together-to-separate" class="section level1">
+<h1><span class="header-section-number">10</span> Using MOUSE PC1 and PC2 together to separate</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">100</span>
+PC1 &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">read.csv</span>(<span class="kw">paste0</span>(<span class="st">&quot;/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/20170825-Heatmap cluster GO-enrichment DSS 9 clusters/Leading genes PC1.csv&quot;</span>),<span class="dt">row.names =</span> <span class="dv">1</span>))
+PC2 &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">read.csv</span>(<span class="kw">paste0</span>(<span class="st">&quot;/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/20170825-Heatmap cluster GO-enrichment DSS 9 clusters/Leading genes PC2.csv&quot;</span>),<span class="dt">row.names =</span> <span class="dv">1</span>))
+PC_genes &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">c</span>(<span class="kw">rownames</span>(PC1)[<span class="dv">1</span><span class="op">:</span>n],<span class="kw">rownames</span>(PC2)[<span class="dv">1</span><span class="op">:</span>n]))
+h_PC &lt;-<span class="st"> </span>homologs[homologs[,<span class="dv">1</span>] <span class="op">%in%</span><span class="st"> </span>PC_genes,]
+h_PC &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">unique</span>(<span class="kw">as.vector</span>(h_PC[,<span class="dv">2</span>])))
+cPC &lt;-<span class="st"> </span>data[h_PC[h_PC <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(data)],]
+<span class="kw">suppressWarnings</span>(<span class="kw">plot_series</span>(cPC))</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-11-1.png" width="960" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">t_data &lt;-<span class="st"> </span>cPC</code></pre></div>
+<hr />
+</div>
+<div id="bootstraping-the-dip-index-for-clusterbility" class="section level1">
+<h1><span class="header-section-number">11</span> Bootstraping the Dip index for clusterbility</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp2 &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){
+  k &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">colnames</span>(data),<span class="kw">round</span>(<span class="kw">ncol</span>(data)<span class="op">*</span>.<span class="dv">9</span>),<span class="dt">replace =</span> F)
+  temp2[[<span class="st">&quot;d_VAR&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp2[[<span class="st">&quot;d_VAR&quot;</span>]], diptest<span class="op">::</span><span class="kw">dip.test</span>(d_VAR[,k])<span class="op">$</span>p.value )
+  temp2[[<span class="st">&quot;cPC&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp2[[<span class="st">&quot;cPC&quot;</span>]], diptest<span class="op">::</span><span class="kw">dip.test</span>(cPC[,k])<span class="op">$</span>p.value )
+}
+
+<span class="kw">mypar</span>()
+<span class="kw">boxplot</span>(temp2[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="fl">1.1</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">paste0</span>(pallete[<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>],<span class="st">&quot;30&quot;</span>) ,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;Hartigan&#39;s unimodality p.value&quot;</span>)
+<span class="co">#beeswarm(temp2,add = T,bg=pallete[3:4],pch=21,cex=2)</span>
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(temp2<span class="op">$</span>cPC)){ <span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(temp2<span class="op">$</span>d_VAR[i],temp2<span class="op">$</span>cPC[i]) ,<span class="dt">col=</span><span class="st">&quot;grey&quot;</span>) }
+<span class="kw">points</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="kw">length</span>(temp2<span class="op">$</span>cPC)),<span class="kw">rep</span>(<span class="dv">2</span>,<span class="kw">length</span>(temp2<span class="op">$</span>d_VAR))),<span class="kw">c</span>(temp2<span class="op">$</span>d_VAR,temp2<span class="op">$</span>cPC),<span class="dt">pch=</span><span class="dv">21</span>,<span class="dt">bg=</span>pallete[<span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">3</span>,<span class="kw">length</span>(temp2<span class="op">$</span>cPC)),<span class="kw">rep</span>(<span class="dv">4</span>,<span class="kw">length</span>(temp2<span class="op">$</span>d_VAR)))])
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="fl">1.05</span>,<span class="kw">paste0</span>(<span class="st">&quot;p=&quot;</span>, <span class="kw">signif</span>(<span class="kw">t.test</span>(temp2<span class="op">$</span>cPC,temp2<span class="op">$</span>d_VAR,<span class="dt">paired =</span> T)<span class="op">$</span>p.value,<span class="dv">3</span>)))</code></pre></div>
+<hr />
+</div>
+<div id="boostraping-on-the-hierarchical-clustering" class="section level1">
+<h1><span class="header-section-number">12</span> Boostraping on the hierarchical clustering</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span>pvclust<span class="op">::</span><span class="kw">pvclust</span>(cPC,<span class="dt">method.hclust =</span> <span class="st">&quot;complete&quot;</span>,<span class="dt">method.dist =</span> <span class="st">&quot;euclidean&quot;</span>,<span class="dt">nboot =</span> <span class="dv">300</span>)
+b &lt;-<span class="st"> </span>pvclust<span class="op">::</span><span class="kw">pvclust</span>(d_CV,<span class="dt">method.hclust =</span> <span class="st">&quot;complete&quot;</span>,<span class="dt">method.dist =</span> <span class="st">&quot;euclidean&quot;</span>,<span class="dt">nboot =</span> <span class="dv">300</span>)
+c &lt;-<span class="st"> </span>pvclust<span class="op">::</span><span class="kw">pvclust</span>(d_VAR,<span class="dt">method.hclust =</span> <span class="st">&quot;complete&quot;</span>,<span class="dt">method.dist =</span> <span class="st">&quot;euclidean&quot;</span>,<span class="dt">nboot =</span> <span class="dv">300</span>)
+
+<span class="kw">mypar</span>()
+<span class="kw">plot</span>(a,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">main=</span><span class="st">&quot;mouse PCs&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-13-1.png" width="480" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(b,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">main=</span><span class="st">&quot;human CV&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-13-2.png" width="480" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(c,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">main=</span><span class="st">&quot;human VAR&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-13-3.png" width="480" /></p>
+<pre><code>## Bootstrap (r = 0.49)... Done.
+## Bootstrap (r = 0.6)... Done.
+## Bootstrap (r = 0.68)... Done.
+## Bootstrap (r = 0.79)... Done.
+## Bootstrap (r = 0.89)... Done.
+## Bootstrap (r = 1.0)... Done.
+## Bootstrap (r = 1.09)... Done.
+## Bootstrap (r = 1.19)... Done.
+## Bootstrap (r = 1.3)... Done.
+## Bootstrap (r = 1.39)... Done.
+## Bootstrap (r = 0.5)... Done.
+## Bootstrap (r = 0.6)... Done.
+## Bootstrap (r = 0.7)... Done.
+## Bootstrap (r = 0.8)... Done.
+## Bootstrap (r = 0.9)... Done.
+## Bootstrap (r = 1.0)... Done.
+## Bootstrap (r = 1.1)... Done.
+## Bootstrap (r = 1.2)... Done.
+## Bootstrap (r = 1.3)... Done.
+## Bootstrap (r = 1.4)... Done.
+## Bootstrap (r = 0.5)... Done.
+## Bootstrap (r = 0.6)... Done.
+## Bootstrap (r = 0.7)... Done.
+## Bootstrap (r = 0.8)... Done.
+## Bootstrap (r = 0.9)... Done.
+## Bootstrap (r = 1.0)... Done.
+## Bootstrap (r = 1.1)... Done.
+## Bootstrap (r = 1.2)... Done.
+## Bootstrap (r = 1.3)... Done.
+## Bootstrap (r = 1.4)... Done.</code></pre>
+<hr />
+</div>
+<div id="cluster-tendency" class="section level1">
+<h1><span class="header-section-number">13</span> Cluster tendency</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pheatmap</span>(<span class="kw">as.matrix</span>(<span class="kw">dist</span>(<span class="kw">t</span>(data))),<span class="dt">color =</span> <span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;steelblue&quot;</span>,<span class="st">&quot;grey&quot;</span>))(<span class="dv">30</span>),<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">main=</span><span class="st">&quot;All genes (human)&quot;</span>,<span class="dt">clustering_method =</span> <span class="st">&quot;complete&quot;</span>,<span class="dt">clustering_distance_cols =</span> <span class="st">&quot;euclidean&quot;</span>,<span class="dt">clustering_distance_rows =</span> <span class="st">&quot;euclidean&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-14-1.png" width="480" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pheatmap</span>(<span class="kw">as.matrix</span>(<span class="kw">dist</span>(<span class="kw">t</span>(d_VAR))),<span class="dt">color =</span> <span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;steelblue&quot;</span>,<span class="st">&quot;grey&quot;</span>))(<span class="dv">30</span>),<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">main=</span><span class="st">&quot;top 100 var (human)&quot;</span>,<span class="dt">clustering_method =</span> <span class="st">&quot;complete&quot;</span>,<span class="dt">clustering_distance_cols =</span> <span class="st">&quot;euclidean&quot;</span>,<span class="dt">clustering_distance_rows =</span> <span class="st">&quot;euclidean&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-14-2.png" width="480" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pheatmap</span>(<span class="kw">as.matrix</span>(<span class="kw">dist</span>(<span class="kw">t</span>(d_CV))),<span class="dt">color =</span> <span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;steelblue&quot;</span>,<span class="st">&quot;grey&quot;</span>))(<span class="dv">30</span>),<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">main=</span><span class="st">&quot;top 100 CV (human)&quot;</span>,<span class="dt">clustering_method =</span> <span class="st">&quot;complete&quot;</span>,<span class="dt">clustering_distance_cols =</span> <span class="st">&quot;euclidean&quot;</span>,<span class="dt">clustering_distance_rows =</span> <span class="st">&quot;euclidean&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-14-3.png" width="480" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pheatmap</span>(<span class="kw">as.matrix</span>(<span class="kw">dist</span>(<span class="kw">t</span>(cPC))),<span class="dt">color =</span> <span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;steelblue&quot;</span>,<span class="st">&quot;grey&quot;</span>))(<span class="dv">30</span>),<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">main=</span><span class="st">&quot;PC1+PC1 (mouse)&quot;</span>,<span class="dt">clustering_method =</span> <span class="st">&quot;complete&quot;</span>,<span class="dt">clustering_distance_cols =</span> <span class="st">&quot;euclidean&quot;</span>,<span class="dt">clustering_distance_rows =</span> <span class="st">&quot;euclidean&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-14-4.png" width="480" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">10</span>,<span class="dt">mar =</span> <span class="kw">c</span>(<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>))
+
+<span class="kw">set.seed</span>(<span class="dv">123</span>)
+tSNE &lt;-<span class="st"> </span><span class="kw">Rtsne</span>(<span class="kw">t</span>(t_data),<span class="dt">perplexity =</span> <span class="dv">30</span>,<span class="dt">pca =</span> T,<span class="dt">max_iter =</span> <span class="dv">1000</span>,<span class="dt">theta =</span> <span class="fl">0.0</span>)
+UC_subtype &lt;-<span class="st"> </span><span class="kw">classify</span>(t_data)
+model &lt;-<span class="st"> </span><span class="kw">glm</span>(UC_subtype<span class="op">~</span>tSNE<span class="op">$</span>Y,<span class="dt">family=</span><span class="st">&quot;binomial&quot;</span>)
+slope &lt;-<span class="st"> </span><span class="kw">coef</span>(model)[<span class="dv">2</span>]<span class="op">/</span>(<span class="op">-</span><span class="kw">coef</span>(model)[<span class="dv">3</span>])
+intercept &lt;-<span class="st"> </span><span class="kw">coef</span>(model)[<span class="dv">1</span>]<span class="op">/</span>(<span class="op">-</span><span class="kw">coef</span>(model)[<span class="dv">3</span>]) 
+
+<span class="co">#Sort genes by absolute fold-change</span>
+ordered_list &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">apply</span>(t_data,<span class="dv">1</span>,<span class="cf">function</span>(x) <span class="kw">abs</span>(<span class="kw">mean</span>(x[UC_subtype<span class="op">==</span><span class="kw">levels</span>(UC_subtype)[<span class="dv">1</span>]]) <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(x[UC_subtype<span class="op">==</span><span class="kw">levels</span>(UC_subtype)[<span class="dv">2</span>]])) ),<span class="dt">decreasing =</span> T)
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">names</span>(ordered_list)){
+  grad &lt;-<span class="st"> </span>(t_data[i,] <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(t_data[i,],.<span class="dv">05</span>)) <span class="op">/</span><span class="st"> </span>(<span class="kw">quantile</span>(t_data[i,],.<span class="dv">95</span>) <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(t_data[i,],.<span class="dv">05</span>))
+  grad[grad <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span>; grad[grad <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+  <span class="kw">plot</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>],tSNE<span class="op">$</span>Y[,<span class="dv">2</span>],<span class="dt">cex=</span><span class="fl">1.5</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">yaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;grey90&quot;</span>,<span class="st">&quot;grey80&quot;</span>,<span class="st">&quot;navy&quot;</span>))(<span class="dv">50</span>)[grad<span class="op">*</span><span class="dv">49</span><span class="op">+</span><span class="dv">1</span>],<span class="dt">pch=</span><span class="kw">as.numeric</span>(UC_subtype)<span class="op">+</span><span class="dv">15</span>,<span class="dt">line=</span>.<span class="dv">5</span>,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out),<span class="dt">main=</span>i)
+  <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>);<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>)
+  <span class="kw">text</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,i,<span class="dt">adj=</span><span class="dv">0</span>,<span class="dt">cex=</span><span class="fl">1.5</span>)
+  <span class="kw">abline</span>(<span class="kw">c</span>(intercept,slope),<span class="dt">lty=</span><span class="dv">2</span>)}</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-15-1.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-15-2.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-15-3.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-15-4.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-15-5.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-15-6.png" width="960" /></p>
+<hr />
+</div>
+<div id="evaluating-the-response-to-infliximab-for-uc1-and-uc2" class="section level1">
+<h1><span class="header-section-number">14</span> Evaluating the response to infliximab for UC1 and UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">5</span>)
+<span class="kw">plot</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>],tSNE<span class="op">$</span>Y[,<span class="dv">2</span>],<span class="dt">cex=</span><span class="fl">1.5</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">yaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;grey&quot;</span>,<span class="st">&quot;darkgreen&quot;</span>)[Group],<span class="dt">pch=</span><span class="kw">as.numeric</span>(UC_subtype)<span class="op">+</span><span class="dv">15</span>,<span class="dt">line=</span>.<span class="dv">5</span>,<span class="dt">xlab=</span><span class="st">&quot;tSNE1&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;tSNE2&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out),<span class="dt">main=</span><span class="st">&quot;tSNE resp. to IFX&quot;</span>)
+<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>);<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>)
+<span class="kw">abline</span>(intercept,slope,<span class="dt">lty=</span><span class="dv">2</span>)
+
+<span class="kw">plot</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>],tSNE<span class="op">$</span>Y[,<span class="dv">2</span>],<span class="dt">cex=</span><span class="fl">1.5</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">yaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">col=</span>pallete[<span class="kw">factor</span>(phenotData<span class="op">$</span>GEO)],<span class="dt">pch=</span><span class="kw">as.numeric</span>(UC_subtype)<span class="op">+</span><span class="dv">15</span>,<span class="dt">line=</span>.<span class="dv">5</span>,<span class="dt">xlab=</span><span class="st">&quot;tSNE1&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;tSNE2&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out),<span class="dt">main=</span><span class="st">&quot;tSNE by dataset&quot;</span>)
+<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>);<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>)
+<span class="kw">abline</span>(intercept,slope,<span class="dt">lty=</span><span class="dv">2</span>)
+
+temp &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">levels</span>(UC_subtype)){
+  <span class="cf">for</span>(j <span class="cf">in</span> <span class="kw">unique</span>(phenotData<span class="op">$</span>GEO)){
+    temp[[<span class="st">&quot;1&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp[[<span class="st">&quot;1&quot;</span>]] ,<span class="dv">100</span><span class="op">*</span><span class="kw">sum</span>(Group[(phenotData<span class="op">$</span>GEO<span class="op">==</span>j) <span class="op">&amp;</span><span class="st"> </span>(UC_subtype<span class="op">==</span>i)]<span class="op">==</span><span class="st">&quot;R&quot;</span>) <span class="op">/</span><span class="st"> </span><span class="kw">length</span>(Group[(phenotData<span class="op">$</span>GEO<span class="op">==</span>j) <span class="op">&amp;</span><span class="st"> </span>(UC_subtype<span class="op">==</span>i)]))
+    temp[[<span class="st">&quot;2&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp[[<span class="st">&quot;2&quot;</span>]],i)
+    temp[[<span class="st">&quot;3&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">c</span>(temp[[<span class="st">&quot;3&quot;</span>]],j) }}
+
+<span class="kw">boxplot</span>(temp[[<span class="dv">1</span>]]<span class="op">~</span><span class="kw">factor</span>(temp[[<span class="dv">2</span>]]),<span class="dt">cex=</span><span class="dv">2</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;UC subtype&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;% response to IFX&quot;</span>,<span class="dt">type=</span><span class="st">&quot;n&quot;</span>,<span class="dt">border=</span><span class="st">&quot;white&quot;</span>)
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>){
+  a &lt;-<span class="st"> </span>temp[[<span class="dv">1</span>]] [<span class="kw">factor</span>(temp[[<span class="dv">2</span>]])<span class="op">==</span><span class="kw">levels</span>(<span class="kw">factor</span>(temp[[<span class="dv">2</span>]]))[i] ]
+  mb &lt;-<span class="st"> </span><span class="kw">mean</span>(a)
+  <span class="kw">polygon</span>(<span class="kw">c</span>(i<span class="op">-</span>.<span class="dv">4</span>,i<span class="op">-</span>.<span class="dv">4</span>,i<span class="op">+</span>.<span class="dv">4</span>,i<span class="op">+</span>.<span class="dv">4</span>),<span class="kw">c</span>(<span class="dv">0</span>,mb,mb,<span class="dv">0</span>),<span class="dt">col=</span>pallete[i])
+  sb &lt;-<span class="st"> </span><span class="kw">sd</span>(a)<span class="op">/</span><span class="kw">sqrt</span>(<span class="kw">length</span>(a))
+  <span class="co">#lines(c(i-.4,i+.4),c(mb,mb),lwd=5)</span>
+  <span class="kw">lines</span>(<span class="kw">c</span>(i,i),<span class="kw">c</span>(mb<span class="op">-</span>sb,mb<span class="op">+</span>sb))
+  <span class="kw">lines</span>(<span class="kw">c</span>(i<span class="op">-</span>.<span class="dv">2</span>,i<span class="op">+</span>.<span class="dv">2</span>),<span class="kw">c</span>(mb<span class="op">+</span>sb,mb<span class="op">+</span>sb)); <span class="kw">lines</span>(<span class="kw">c</span>(i<span class="op">-</span>.<span class="dv">2</span>,i<span class="op">+</span>.<span class="dv">2</span>),<span class="kw">c</span>(mb<span class="op">-</span>sb,mb<span class="op">-</span>sb))}
+
+<span class="kw">beeswarm</span>(temp[[<span class="dv">1</span>]]<span class="op">~</span><span class="kw">factor</span>(temp[[<span class="dv">2</span>]]),<span class="dt">pwbg =</span> pallete[<span class="kw">factor</span>(temp[[<span class="dv">2</span>]])],<span class="dt">pwpch =</span> <span class="dv">14</span><span class="op">+</span><span class="kw">as.numeric</span>(<span class="kw">factor</span>(temp[[<span class="dv">3</span>]])),<span class="dt">pwcol =</span> <span class="kw">rep</span>(<span class="st">&quot;black&quot;</span>,<span class="kw">length</span>(<span class="kw">factor</span>(temp[[<span class="dv">2</span>]]))),<span class="dt">cex=</span><span class="dv">2</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;UC subtype&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;% response to IFX&quot;</span>,<span class="dt">add=</span>T)
+
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="dv">95</span>,<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>,<span class="kw">signif</span>(<span class="kw">t.test</span>(temp[[<span class="dv">1</span>]]<span class="op">~</span><span class="kw">factor</span>(temp[[<span class="dv">2</span>]]))<span class="op">$</span>p.value,<span class="dv">3</span>)))
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(<span class="dv">90</span>,<span class="dv">90</span>))
+<span class="kw">plot</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="dt">type=</span><span class="st">&quot;n&quot;</span>,<span class="dt">axes=</span>F,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;&quot;</span>)
+<span class="kw">legend</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="kw">levels</span>(<span class="kw">factor</span>(temp[[<span class="dv">3</span>]])),<span class="dt">pch=</span><span class="dv">14</span><span class="op">+</span><span class="kw">as.numeric</span>(<span class="kw">factor</span>(<span class="kw">levels</span>(<span class="kw">factor</span>(temp[[<span class="dv">3</span>]])))),<span class="dt">pt.cex =</span> <span class="dv">2</span>,<span class="dt">col =</span><span class="st">&quot;black&quot;</span>,<span class="dt">box.lwd =</span> <span class="dv">0</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-16-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="computing-degs-between-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">15</span> Computing DEGs between UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">set &lt;-<span class="st"> </span><span class="kw">ExpressionSet</span>(<span class="kw">as.matrix</span>(data)); <span class="kw">pData</span>(set) &lt;-<span class="st"> </span>phenotData
+design &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span>UC_subtype)
+<span class="kw">colnames</span>(design) &lt;-<span class="st"> </span><span class="kw">levels</span>(UC_subtype)
+
+fit &lt;-<span class="st"> </span><span class="kw">lmFit</span>(set, design)
+fit &lt;-<span class="st"> </span><span class="kw">contrasts.fit</span>(fit,<span class="dt">coefficients =</span> <span class="dv">2</span>)
+fit &lt;-<span class="st"> </span><span class="kw">eBayes</span>(fit)
+top &lt;-<span class="st"> </span><span class="kw">topTable</span>(fit,<span class="dt">number =</span> <span class="st">&quot;all&quot;</span>)
+
+pValue &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(top)[,<span class="st">&quot;P.Value&quot;</span>]
+logFC &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(top)[,<span class="st">&quot;logFC&quot;</span>]
+FDR &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(top)[,<span class="st">&quot;adj.P.Val&quot;</span>]
+
+pT &lt;-<span class="st"> </span><span class="dv">10</span>
+lT &lt;-<span class="st"> </span>.<span class="dv">7</span>
+  
+top_DE &lt;-<span class="st"> </span><span class="kw">rownames</span>(top)[<span class="kw">ifelse</span>(<span class="kw">abs</span>(logFC) <span class="op">&lt;</span><span class="st"> </span>lT,<span class="ot">FALSE</span>,<span class="kw">ifelse</span>(<span class="op">-</span><span class="kw">log10</span>(FDR) <span class="op">&lt;</span><span class="st"> </span>pT,<span class="ot">FALSE</span>,<span class="ot">TRUE</span>))]
+
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">2</span>)
+<span class="kw">plot</span>(logFC,<span class="op">-</span><span class="kw">log10</span>(FDR),<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>,<span class="dv">4</span>),<span class="dt">col=</span><span class="kw">ifelse</span>(<span class="kw">names</span>(logFC) <span class="op">%in%</span><span class="st"> </span>top_DE,<span class="st">&quot;red&quot;</span>,<span class="st">&quot;black&quot;</span>),<span class="dt">cex=</span>.<span class="dv">6</span>,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(<span class="op">-</span><span class="kw">log10</span>(FDR))<span class="op">*</span><span class="fl">1.1</span> ),<span class="dt">las=</span><span class="dv">1</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="op">-</span>lT,lT),<span class="dt">h=</span>pT,<span class="dt">lty=</span><span class="dv">5</span>,<span class="dt">col=</span><span class="st">&quot;grey50&quot;</span>)
+
+<span class="kw">plot</span>(logFC,<span class="op">-</span><span class="kw">log10</span>(FDR),<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>,<span class="dv">4</span>),<span class="dt">col=</span><span class="kw">ifelse</span>(<span class="kw">names</span>(logFC) <span class="op">%in%</span><span class="st"> </span>top_DE,<span class="st">&quot;red&quot;</span>,<span class="st">&quot;black&quot;</span>),<span class="dt">cex=</span>.<span class="dv">6</span>,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(<span class="op">-</span><span class="kw">log10</span>(FDR))<span class="op">*</span><span class="fl">1.1</span> ),<span class="dt">las=</span><span class="dv">1</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="op">-</span>lT,lT),<span class="dt">h=</span>pT,<span class="dt">lty=</span><span class="dv">5</span>,<span class="dt">col=</span><span class="st">&quot;grey50&quot;</span>)
+<span class="kw">text</span>(logFC[top_DE],<span class="op">-</span><span class="kw">log10</span>(FDR)[top_DE],top_DE,<span class="dt">pos=</span><span class="dv">3</span>,<span class="dt">cex=</span>.<span class="dv">4</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-17-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="ploting-the-variance-of-mouse-pc-genes-in-the-human-dataset" class="section level1">
+<h1><span class="header-section-number">16</span> Ploting the variance of mouse PC genes in the human dataset</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">3</span>,<span class="dv">1</span>),<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">4</span>))
+
+<span class="kw">barplot</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">ifelse</span>(<span class="kw">names</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>]) <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(cPC),<span class="st">&quot;red&quot;</span>,<span class="st">&quot;grey&quot;</span>),<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>])<span class="op">*</span><span class="fl">1.4</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">main=</span><span class="st">&quot;human rowVar&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;variance&quot;</span>,<span class="dt">border=</span><span class="ot">NA</span>)
+<span class="kw">legend</span>(<span class="st">&quot;bottomright&quot;</span>,<span class="kw">c</span>(<span class="st">&quot;found</span><span class="ch">\n</span><span class="st">in mouse&quot;</span>),<span class="dt">pch =</span> <span class="dv">22</span>,<span class="dt">bty =</span> <span class="st">&quot;n&quot;</span>,<span class="dt">pt.bg =</span> <span class="st">&quot;red&quot;</span>,<span class="dt">pt.cex =</span> <span class="dv">2</span>)
+
+temp &lt;-<span class="st"> </span><span class="kw">sort</span>(rowVAR,<span class="dt">decreasing =</span> T)
+<span class="kw">barplot</span>(temp[<span class="kw">names</span>(temp) <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(cPC)][<span class="kw">nrow</span>(cPC)<span class="op">:</span><span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(temp)<span class="op">*</span><span class="fl">1.4</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">main=</span><span class="st">&quot;human rowVar (only mouse genes)&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;variance&quot;</span>,<span class="dt">border=</span><span class="ot">NA</span>)
+<span class="kw">legend</span>(<span class="st">&quot;bottomright&quot;</span>,<span class="kw">c</span>(<span class="st">&quot;found</span><span class="ch">\n</span><span class="st">in mouse&quot;</span>),<span class="dt">pch =</span> <span class="dv">22</span>,<span class="dt">bty =</span> <span class="st">&quot;n&quot;</span>,<span class="dt">pt.bg =</span> <span class="st">&quot;red&quot;</span>,<span class="dt">pt.cex =</span> <span class="dv">2</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-18-1.png" width="576" /></p>
+<hr />
+</div>
+<div id="ploting-heatmap-comparing-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">17</span> Ploting heatmap comparing UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>()
+ann_groups &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">ann_groups=</span>UC_subtype,<span class="dt">row.names=</span><span class="kw">colnames</span>(data))
+tag_colors &lt;-<span class="st"> </span>pallete[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(<span class="kw">levels</span>(UC_subtype))]; <span class="kw">names</span>(tag_colors) &lt;-<span class="st"> </span><span class="kw">unique</span>(ann_groups)[[<span class="dv">1</span>]]
+o &lt;-<span class="st"> </span><span class="kw">order</span>(ann_groups<span class="op">$</span>ann_groups)
+
+<span class="kw">pheatmap</span>(data[top_DE,o],<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;navy&quot;</span>,<span class="st">&quot;navy&quot;</span>,<span class="st">&quot;white&quot;</span>,<span class="st">&quot;firebrick&quot;</span>,<span class="st">&quot;firebrick&quot;</span>))(<span class="dv">50</span>),<span class="dt">clustering_method =</span> <span class="st">&quot;ward.D2&quot;</span>,<span class="dt">border_color =</span> <span class="ot">NA</span>,<span class="dt">scale =</span> <span class="st">&quot;row&quot;</span>,<span class="dt">annotation_col =</span> <span class="kw">as.data.frame</span>(ann_groups), <span class="dt">annotation_colors =</span>  <span class="kw">list</span>(<span class="dt">ann_groups =</span> tag_colors),<span class="dt">cluster_cols =</span> F,<span class="dt">fontsize_row =</span> <span class="dv">5</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<hr />
+</div>
+<div id="computing-gene-set-analysis-on-deg-between-uc1-and-uc2" class="section level1">
+<h1><span class="header-section-number">18</span> Computing gene set analysis on DEG between UC1 and UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">7</span>
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">c</span>(T,F)){
+temp &lt;-<span class="st"> </span>top_DE[ (logFC[top_DE] <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) <span class="op">==</span><span class="st"> </span>i]
+
+cell &lt;-<span class="st"> </span><span class="kw">enrichr</span>(<span class="dt">genes=</span>temp, <span class="dt">databases =</span> <span class="st">&quot;ARCHS4_Tissues&quot;</span>)[[<span class="dv">1</span>]]
+cell &lt;-<span class="st"> </span>cell[<span class="kw">grep</span>(<span class="st">&quot;[(]&quot;</span>,cell<span class="op">$</span>Term,<span class="dt">invert =</span> T),]
+
+go &lt;-<span class="st"> </span><span class="kw">enrichr</span>(<span class="dt">genes=</span>temp, <span class="dt">databases =</span> <span class="st">&quot;GO_Biological_Process_2017b&quot;</span>)[[<span class="dv">1</span>]]
+go<span class="op">$</span>Term &lt;-<span class="st"> </span><span class="kw">sub</span>(<span class="st">&quot; [(].*&quot;</span>,<span class="st">&quot;&quot;</span>,go<span class="op">$</span>Term)                  <span class="co">#Remove the GO ID</span>
+go &lt;-<span class="st"> </span>go[<span class="kw">grep</span>(<span class="st">&quot;regulation&quot;</span>,go<span class="op">$</span>Term,<span class="dt">invert =</span> T),]     <span class="co">#Remove terms related to regulation of processes</span>
+
+kegg &lt;-<span class="st"> </span><span class="kw">enrichr</span>(<span class="dt">genes=</span>temp, <span class="dt">databases =</span> <span class="st">&quot;KEGG_2016&quot;</span>)[[<span class="dv">1</span>]]
+kegg &lt;-<span class="st"> </span>kegg[<span class="kw">grep</span>(<span class="st">&quot;_hsa05&quot;</span>,kegg<span class="op">$</span>Term,<span class="dt">invert =</span> T),]   <span class="co">#Remove disease-related KEGG pathways (&quot;hsa05&quot;&quot;)</span>
+kegg<span class="op">$</span>Term &lt;-<span class="st"> </span><span class="kw">sub</span>(<span class="st">&quot;_H.*&quot;</span>,<span class="st">&quot;&quot;</span>,kegg<span class="op">$</span>Term)                <span class="co">#Remove KEGG tag &quot;_Homo sapiens_hsa00770&quot;</span>
+
+<span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">15</span>,<span class="dv">1</span>,<span class="dv">1</span>),<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))
+<span class="kw">barplot</span>(cell[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;Combined.Score&quot;</span>],<span class="dt">names.arg=</span>cell[n<span class="op">:</span><span class="dv">1</span>,<span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="dv">3</span>,<span class="st">&quot;grey90&quot;</span>))(n)[n<span class="op">:</span><span class="dv">1</span>],<span class="dt">xlab=</span><span class="st">&quot;Combined.Score&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(cell[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;Combined.Score&quot;</span>],<span class="dv">4</span>)<span class="op">*</span><span class="fl">1.5</span>),<span class="dt">tck=</span><span class="op">-</span>.<span class="dv">05</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">main=</span><span class="kw">paste0</span>(<span class="st">&quot;cell (&quot;</span>,<span class="kw">ifelse</span>(i,<span class="st">&quot;UP in UC2&quot;</span>,<span class="st">&quot;UP in UC1&quot;</span>),<span class="st">&quot;)&quot;</span>),<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">2</span>),<span class="dt">lty=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dt">lwd=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>),<span class="dt">col=</span><span class="st">&quot;black&quot;</span>)
+
+<span class="kw">barplot</span>(go[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;Combined.Score&quot;</span>],<span class="dt">names.arg=</span>go[n<span class="op">:</span><span class="dv">1</span>,<span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="dv">3</span>,<span class="st">&quot;grey90&quot;</span>))(n)[n<span class="op">:</span><span class="dv">1</span>],<span class="dt">xlab=</span><span class="st">&quot;Combined.Score&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(go[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;Combined.Score&quot;</span>],<span class="dv">4</span>)<span class="op">*</span><span class="fl">1.5</span>),<span class="dt">tck=</span><span class="op">-</span>.<span class="dv">05</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">main=</span><span class="kw">paste0</span>(<span class="st">&quot;GO (&quot;</span>,<span class="kw">ifelse</span>(i,<span class="st">&quot;UP in UC2&quot;</span>,<span class="st">&quot;UP in UC1&quot;</span>),<span class="st">&quot;)&quot;</span>),<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">2</span>),<span class="dt">lty=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dt">lwd=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>),<span class="dt">col=</span><span class="st">&quot;black&quot;</span>)
+
+<span class="kw">barplot</span>(kegg[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;Combined.Score&quot;</span>],<span class="dt">names.arg=</span>kegg[n<span class="op">:</span><span class="dv">1</span>,<span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="dv">3</span>,<span class="st">&quot;grey90&quot;</span>))(n)[n<span class="op">:</span><span class="dv">1</span>],<span class="dt">xlab=</span><span class="st">&quot;Combined.Score&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(kegg[n<span class="op">:</span><span class="dv">1</span>,<span class="st">&quot;Combined.Score&quot;</span>],<span class="dv">4</span>)<span class="op">*</span><span class="fl">1.6</span>),<span class="dt">tck=</span><span class="op">-</span>.<span class="dv">05</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">main=</span><span class="kw">paste0</span>(<span class="st">&quot;KEGG (&quot;</span>,<span class="kw">ifelse</span>(i,<span class="st">&quot;UP in UC2&quot;</span>,<span class="st">&quot;UP in UC1&quot;</span>),<span class="st">&quot;)&quot;</span>),<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">2</span>),<span class="dt">lty=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dt">lwd=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>),<span class="dt">col=</span><span class="st">&quot;black&quot;</span>)
+
+}</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-20-1.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-20-2.png" width="960" /></p>
+<hr />
+</div>
+<div id="comparing-enriched-terms-among-the-differentially-expressed-genes" class="section level1">
+<h1><span class="header-section-number">19</span> Comparing enriched terms among the differentially expressed genes</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">2</span>)
+input  &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;NEUTROPHIL&quot;</span>=<span class="kw">strsplit</span>(cell<span class="op">$</span>Genes[<span class="dv">1</span>],<span class="st">&quot;;&quot;</span>)[[<span class="dv">1</span>]],<span class="st">&quot;Neutrophil degranulation&quot;</span>=<span class="kw">strsplit</span>(go<span class="op">$</span>Genes[<span class="dv">1</span>],<span class="st">&quot;;&quot;</span>)[[<span class="dv">1</span>]],<span class="st">&quot;Cytokine-cytokine receptor interaction&quot;</span>=<span class="kw">strsplit</span>(kegg<span class="op">$</span>Genes[<span class="dv">1</span>],<span class="st">&quot;;&quot;</span>)[[<span class="dv">1</span>]])
+  a&lt;-<span class="kw">attr</span>(<span class="kw">venn</span>(input), <span class="st">&quot;intersections&quot;</span>)
+  <span class="kw">title</span>(<span class="dt">main =</span> <span class="st">&quot;Top Down-regulated genes&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-21-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="tsne-gene-expression-of-degs-between-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">20</span> tSNE gene expression of DEGs between UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">10</span>,<span class="dt">mar =</span> <span class="kw">c</span>(<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>))
+
+<span class="co">#Sort genes by absolute fold-change</span>
+ordered_list &lt;-<span class="st"> </span><span class="kw">sort</span>(logFC[top_DE])
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">names</span>(ordered_list)){
+  grad &lt;-<span class="st"> </span>(data[i,] <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(data[i,],.<span class="dv">05</span>)) <span class="op">/</span><span class="st"> </span>(<span class="kw">quantile</span>(data[i,],.<span class="dv">95</span>) <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(data[i,],.<span class="dv">05</span>))
+  grad[grad <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span>; grad[grad <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+  <span class="kw">plot</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>],tSNE<span class="op">$</span>Y[,<span class="dv">2</span>],<span class="dt">cex=</span><span class="fl">1.5</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">yaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;grey90&quot;</span>,<span class="st">&quot;grey80&quot;</span>,<span class="st">&quot;navy&quot;</span>))(<span class="dv">50</span>)[grad<span class="op">*</span><span class="dv">49</span><span class="op">+</span><span class="dv">1</span>],<span class="dt">pch=</span><span class="kw">as.numeric</span>(UC_subtype)<span class="op">+</span><span class="dv">15</span>,<span class="dt">line=</span>.<span class="dv">5</span>,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out),<span class="dt">main=</span>i)
+  <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>);<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>)
+  <span class="kw">text</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,i,<span class="dt">adj=</span><span class="dv">0</span>,<span class="dt">cex=</span><span class="fl">1.5</span>)
+  <span class="kw">abline</span>(<span class="kw">c</span>(intercept,slope),<span class="dt">lty=</span><span class="dv">2</span>)}</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-1.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-2.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-3.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-4.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-5.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-6.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-7.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-8.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-9.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-10.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-11.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-12.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-13.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-14.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-15.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-16.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-17.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-18.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-19.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-20.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-21.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-22.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-23.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-22-24.png" width="960" /></p>
+<hr />
+</div>
+<div id="violinplot-gene-expression-of-degs-between-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">21</span> ViolinPlot gene expression of DEGs between UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">11</span>,<span class="dt">mar =</span> <span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">1</span>))
+
+<span class="co">#Sort genes by absolute fold-change</span>
+ordered_list &lt;-<span class="st"> </span><span class="kw">sort</span>(logFC[top_DE])
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">names</span>(ordered_list)){
+  <span class="kw">my_violins</span>(data[i,],UC_subtype,<span class="dt">main =</span> i,<span class="dt">color =</span> pallete)}</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-1.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-2.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-3.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-4.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-5.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-6.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-7.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-8.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-9.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-10.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-11.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-12.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-13.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-14.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-15.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-16.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-17.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-18.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-19.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-20.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-21.png" width="1152" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-23-22.png" width="1152" /></p>
+<hr />
+</div>
+<div id="logistic-regression-for-each-gene-to-discern-uc1-from-uc2" class="section level1">
+<h1><span class="header-section-number">22</span> Logistic regression for each gene to discern UC1 from UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">AUC &lt;-<span class="st"> </span><span class="kw">sapply</span>(top_DE,<span class="cf">function</span>(x){
+  model &lt;-<span class="st"> </span><span class="kw">glm</span>((UC_subtype<span class="op">==</span><span class="st">&quot;UC1&quot;</span>) <span class="op">~</span><span class="st"> </span>data[x,],<span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)
+  x &lt;-<span class="st"> </span><span class="kw">round</span>(<span class="kw">confusionMatrix</span>(<span class="kw">as.factor</span>(<span class="kw">ifelse</span>(model<span class="op">$</span>linear.predictors <span class="op">&gt;</span><span class="st"> </span>.<span class="dv">5</span>,<span class="st">&quot;UC1&quot;</span>,<span class="st">&quot;UC2&quot;</span>)), UC_subtype)<span class="op">$</span>overall[[<span class="dv">1</span>]]<span class="op">*</span><span class="dv">100</span>,<span class="dv">2</span>)
+})
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">10</span>)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">names</span>(<span class="kw">sort</span>(logFC[top_DE]))){
+  model &lt;-<span class="st"> </span><span class="kw">glm</span>((UC_subtype<span class="op">==</span><span class="st">&quot;UC1&quot;</span>) <span class="op">~</span><span class="st"> </span>data[i,],<span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)
+<span class="kw">plot</span>(data[i,],<span class="kw">as.numeric</span>(model<span class="op">$</span>fitted.values),<span class="dt">col=</span>pallete[UC_subtype],<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">main=</span>i,<span class="dt">ylab=</span><span class="st">&quot;LR fitted values&quot;</span>,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;expression level&quot;</span>)
+<span class="kw">text</span>(<span class="kw">min</span>(data[i,]),.<span class="dv">95</span>,<span class="kw">round</span>(AUC[i],<span class="dv">2</span>),<span class="dt">adj =</span> <span class="dv">0</span>)
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="fl">0.5</span>,<span class="dt">lty=</span><span class="dv">2</span>)
+}</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-1.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-2.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-3.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-4.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-5.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-6.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-7.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-8.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-9.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-10.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-11.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-12.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-13.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-14.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-15.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-16.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-17.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-18.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-19.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-20.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-21.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-22.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-23.png" width="960" /><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-24-24.png" width="960" /></p>
+<hr />
+</div>
+<div id="plot-top-predictors" class="section level1">
+<h1><span class="header-section-number">23</span> Plot top predictors</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>),<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">3</span>,<span class="dv">3</span>))
+temp &lt;-<span class="st"> </span><span class="kw">sort</span>(AUC,<span class="dt">decreasing =</span> T)
+<span class="kw">barplot</span>(temp[<span class="kw">c</span>(<span class="dv">20</span><span class="op">:</span><span class="dv">1</span>)],<span class="dt">horiz=</span>T,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">80</span>,<span class="dv">100</span>),<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xlab=</span><span class="st">&quot;% Accuracy&quot;</span>,<span class="dt">border=</span><span class="ot">NA</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;grey80&quot;</span>,<span class="st">&quot;navy&quot;</span>))(<span class="dv">40</span>)[<span class="dv">1</span><span class="op">:</span><span class="dv">40</span>],<span class="dt">xpd=</span>F )
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="dv">80</span>,<span class="dv">90</span>,<span class="dv">100</span>),<span class="dt">col=</span><span class="st">&quot;black&quot;</span>,<span class="dt">lty=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>),<span class="dt">lwd=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">1</span>))</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-25-1.png" width="240" /></p>
+<hr />
+</div>
+<div id="plot-histological-mayo-score-for-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">24</span> Plot histological MAYO score for UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(UC_subtype) &lt;-<span class="st"> </span><span class="kw">colnames</span>(data)
+
+pdataGSE73661 &lt;-<span class="st"> </span><span class="kw">pData</span>(gsetGSE73661)
+f1 &lt;-<span class="st"> </span>pdataGSE73661<span class="op">$</span><span class="st">`</span><span class="dt">mayo endoscopic subscore:ch1</span><span class="st">`</span>
+f2 &lt;-<span class="st"> </span>pdataGSE73661<span class="op">$</span><span class="st">`</span><span class="dt">induction therapy_maintenance therapy:ch1</span><span class="st">`</span> <span class="op">==</span><span class="st"> &quot;IFX&quot;</span>
+f3 &lt;-<span class="st"> </span>pdataGSE73661<span class="op">$</span><span class="st">`</span><span class="dt">week (w):ch1</span><span class="st">`</span> <span class="op">==</span><span class="st"> &quot;W0&quot;</span>
+
+MAYO &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(pdataGSE73661[f2<span class="op">&amp;</span>f3,]<span class="op">$</span><span class="st">`</span><span class="dt">mayo endoscopic subscore:ch1</span><span class="st">`</span>)
+<span class="kw">names</span>(MAYO) &lt;-<span class="st"> </span>pdataGSE73661[f2<span class="op">&amp;</span>f3,]<span class="op">$</span>geo_accession
+
+
+<span class="kw">boxplot</span>(MAYO <span class="op">~</span><span class="st"> </span>UC_subtype[<span class="kw">names</span>(MAYO)],<span class="dt">cex=</span><span class="dv">2</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">5</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;UC subtype&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;% response to IFX&quot;</span>,<span class="dt">type=</span><span class="st">&quot;n&quot;</span>,<span class="dt">border=</span><span class="st">&quot;white&quot;</span>)
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>){
+  a &lt;-<span class="st"> </span>MAYO [UC_subtype[<span class="kw">names</span>(MAYO)]<span class="op">==</span><span class="kw">levels</span>(UC_subtype[<span class="kw">names</span>(MAYO)])[i] ]
+  mb &lt;-<span class="st"> </span><span class="kw">mean</span>(a)
+  <span class="kw">polygon</span>(<span class="kw">c</span>(i<span class="op">-</span>.<span class="dv">4</span>,i<span class="op">-</span>.<span class="dv">4</span>,i<span class="op">+</span>.<span class="dv">4</span>,i<span class="op">+</span>.<span class="dv">4</span>),<span class="kw">c</span>(<span class="dv">0</span>,mb,mb,<span class="dv">0</span>),<span class="dt">col=</span>pallete[i])
+  sb &lt;-<span class="st"> </span><span class="kw">sd</span>(a)<span class="op">/</span><span class="kw">sqrt</span>(<span class="kw">length</span>(a))
+  <span class="co">#lines(c(i-.4,i+.4),c(mb,mb),lwd=5)</span>
+  <span class="kw">lines</span>(<span class="kw">c</span>(i,i),<span class="kw">c</span>(mb<span class="op">-</span>sb,mb<span class="op">+</span>sb))
+  <span class="kw">lines</span>(<span class="kw">c</span>(i<span class="op">-</span>.<span class="dv">2</span>,i<span class="op">+</span>.<span class="dv">2</span>),<span class="kw">c</span>(mb<span class="op">+</span>sb,mb<span class="op">+</span>sb)); <span class="kw">lines</span>(<span class="kw">c</span>(i<span class="op">-</span>.<span class="dv">2</span>,i<span class="op">+</span>.<span class="dv">2</span>),<span class="kw">c</span>(mb<span class="op">-</span>sb,mb<span class="op">-</span>sb))}
+
+<span class="kw">beeswarm</span>(MAYO<span class="op">~</span>UC_subtype[<span class="kw">names</span>(MAYO)],<span class="dt">pwbg =</span> pallete[UC_subtype[<span class="kw">names</span>(MAYO)]],<span class="dt">pwpch =</span> <span class="dv">15</span><span class="op">+</span><span class="kw">as.numeric</span>(UC_subtype[<span class="kw">names</span>(MAYO)]),<span class="dt">col=</span><span class="st">&quot;black&quot;</span>,<span class="dt">cex=</span><span class="dv">1</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;UC subtype&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;Mayo Score&quot;</span>,<span class="dt">add=</span>T,<span class="dt">corral=</span><span class="st">&quot;gutter&quot;</span>,<span class="dt">method=</span><span class="st">&quot;hex&quot;</span>)
+stat &lt;-<span class="st"> </span><span class="kw">signif</span>(<span class="kw">wilcox.test</span>(MAYO<span class="op">~</span>UC_subtype[<span class="kw">names</span>(MAYO)])<span class="op">$</span>p.value,<span class="dv">3</span>)
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="fl">4.5</span>,<span class="kw">paste0</span>(<span class="st">&quot;ns</span><span class="ch">\n</span><span class="st">p = &quot;</span>,<span class="kw">signif</span>(<span class="kw">wilcox.test</span>(MAYO<span class="op">~</span>UC_subtype[<span class="kw">names</span>(MAYO)])<span class="op">$</span>p.value,<span class="dv">3</span>)))
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>))</code></pre></div>
+<p><img src="uc_classification_microarray_files/figure-html/unnamed-chunk-26-1.png" width="288" /></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

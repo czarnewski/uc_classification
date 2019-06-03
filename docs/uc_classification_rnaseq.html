@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Paulo Czarnewski" />
+
+<meta name="date" content="2019-05-30" />
+
+<title>UC classification (RNAseq datasets)</title>
+
+<script src="uc_classification_rnaseq_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="uc_classification_rnaseq_files/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="uc_classification_rnaseq_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="uc_classification_rnaseq_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="uc_classification_rnaseq_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="uc_classification_rnaseq_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="uc_classification_rnaseq_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="uc_classification_rnaseq_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="uc_classification_rnaseq_files/navigation-1.1/tabsets.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #f8f8f8; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+pre, code { background-color: #f8f8f8; }
+code > span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code > span.dt { color: #204a87; } /* DataType */
+code > span.dv { color: #0000cf; } /* DecVal */
+code > span.bn { color: #0000cf; } /* BaseN */
+code > span.fl { color: #0000cf; } /* Float */
+code > span.ch { color: #4e9a06; } /* Char */
+code > span.st { color: #4e9a06; } /* String */
+code > span.co { color: #8f5902; font-style: italic; } /* Comment */
+code > span.ot { color: #8f5902; } /* Other */
+code > span.al { color: #ef2929; } /* Alert */
+code > span.fu { color: #000000; } /* Function */
+code > span.er { color: #a40000; font-weight: bold; } /* Error */
+code > span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #000000; } /* Constant */
+code > span.sc { color: #000000; } /* SpecialChar */
+code > span.vs { color: #4e9a06; } /* VerbatimString */
+code > span.ss { color: #4e9a06; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #000000; } /* Variable */
+code > span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code > span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code > span.ex { } /* Extension */
+code > span.at { color: #c4a000; } /* Attribute */
+code > span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code > span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">UC classification (RNAseq datasets)</h1>
+<h3 class="subtitle">Czarnewski et al 2019</h3>
+<h4 class="author">Paulo Czarnewski</h4>
+<h4 class="date">30 May 2019</h4>
+
+</div>
+
+
+<hr />
+<div id="load-packages" class="section level1">
+<h1><span class="header-section-number">1</span> Load Packages</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Source my custom functions</span>
+<span class="kw">source</span>(<span class="st">&quot;support_functions.R&quot;</span>)
+
+<span class="co">#Install and load packages</span>
+<span class="kw">inst_packages</span>(<span class="kw">c</span>(<span class="st">&quot;annotate&quot;</span>,<span class="st">&quot;hgu133plus2.db&quot;</span>,<span class="st">&quot;Biobase&quot;</span>,<span class="st">&quot;Rtsne&quot;</span>,<span class="st">&quot;GEOquery&quot;</span>,<span class="st">&quot;rafalib&quot;</span>,<span class="st">&quot;multcomp&quot;</span>,<span class="st">&quot;RColorBrewer&quot;</span>,<span class="st">&quot;preprocessCore&quot;</span>,<span class="st">&quot;data.table&quot;</span>,<span class="st">&quot;limma&quot;</span>,<span class="st">&quot;pheatmap&quot;</span>,<span class="st">&quot;ROCR&quot;</span>,<span class="st">&quot;epitools&quot;</span>,<span class="st">&quot;beeswarm&quot;</span>,<span class="st">&quot;EDASeq&quot;</span>,<span class="st">&quot;vioplot&quot;</span>,<span class="st">&quot;caret&quot;</span>,<span class="st">&quot;pROC&quot;</span>,<span class="st">&quot;e1071&quot;</span>,<span class="st">&quot;sva&quot;</span>,<span class="st">&quot;car&quot;</span>,<span class="st">&quot;edgeR&quot;</span>,<span class="st">&quot;enrichR&quot;</span>))
+
+<span class="co">#Define color pallete</span>
+pallete &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">brewer.pal</span>(<span class="dv">8</span>,<span class="st">&quot;Set2&quot;</span>),<span class="kw">brewer.pal</span>(<span class="dv">9</span>,<span class="st">&quot;Set1&quot;</span>))[<span class="dv">2</span><span class="op">:</span><span class="dv">8</span>]
+pallete2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">brewer.pal</span>(<span class="dv">8</span>,<span class="st">&quot;Set2&quot;</span>),<span class="kw">brewer.pal</span>(<span class="dv">9</span>,<span class="st">&quot;Set1&quot;</span>))
+color &lt;-<span class="st"> </span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;gray&quot;</span>,<span class="st">&quot;red&quot;</span>,<span class="st">&quot;blue&quot;</span>))(<span class="dv">10</span>)
+
+<span class="co">#homologs &lt;- fread(&#39;http://www.informatics.jax.org/downloads/reports/HMD_HumanPhenotype.rpt&#39;)</span>
+<span class="co">#homologs &lt;- data.frame(&quot;mouse&quot;=homologs$V5,&quot;human&quot;=homologs$V1)</span>
+homologs &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/homologs.csv&quot;</span>,<span class="dt">row.names =</span> <span class="dv">1</span>)</code></pre></div>
+<hr />
+</div>
+<div id="loading-human-dataset" class="section level1">
+<h1><span class="header-section-number">2</span> Loading Human dataset</h1>
+<p>For some reason, the data deposited in this dataset could not be obtained directly using the getGEO function, only the metadata could be obtained this way. Therefore, we downloaded the raw count files from the dataset into a folder and joined them manually. They also added a pseudocount of 0.01 to all values to avoid problems with log transformations, so we removed it in our anlaysis.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Importing samples from GSE109142</span>
+GSE109142_meta &lt;-<span class="st"> </span><span class="kw">pData</span>(<span class="kw">getGEO</span>(<span class="st">&quot;GSE109142&quot;</span>,<span class="dt">GSEMatrix =</span><span class="ot">TRUE</span>)[[<span class="dv">1</span>]])
+GSE109142_meta &lt;-<span class="st"> </span>GSE109142_meta[GSE109142_meta<span class="op">$</span><span class="st">`</span><span class="dt">diagnosis:ch1</span><span class="st">`</span> <span class="op">==</span><span class="st"> &quot;Ulcerative Colitis&quot;</span>,]
+files &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;~/Downloads/GSE109142_RAW/&quot;</span>)
+<span class="cf">for</span>(i <span class="cf">in</span> GSE109142_meta<span class="op">$</span>geo_accession){
+  <span class="kw">cat</span>(<span class="st">&quot;processing sample &quot;</span>,i,<span class="st">&quot;...</span><span class="ch">\n</span><span class="st">&quot;</span>)
+  temp &lt;-<span class="st"> </span><span class="kw">read.delim</span>(<span class="kw">paste0</span>(<span class="st">&quot;~/Downloads/GSE109142_RAW/&quot;</span>,files[<span class="kw">grep</span>(i,files)]),<span class="dt">row.names =</span> <span class="dv">1</span>)
+  <span class="cf">if</span>(i <span class="op">==</span><span class="st"> </span>GSE109142_meta<span class="op">$</span>geo_accession[<span class="dv">1</span>]){
+    dataGSE109142 &lt;-<span class="st"> </span>temp
+  } <span class="cf">else</span>{
+  dataGSE109142 &lt;-<span class="st"> </span><span class="kw">cbind</span>(dataGSE109142,temp)
+}}
+<span class="kw">colnames</span>(dataGSE109142) &lt;-<span class="st"> </span>GSE109142_meta<span class="op">$</span>geo_accession
+dataGSE109142 &lt;-<span class="st"> </span>dataGSE109142<span class="op">-</span><span class="fl">0.01</span></code></pre></div>
+<hr />
+</div>
+<div id="loading-human-dataset-1" class="section level1">
+<h1><span class="header-section-number">3</span> Loading Human dataset</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dataGSE109142 &lt;-<span class="st">  </span><span class="kw">read.csv</span>(<span class="st">&quot;../downloaded/rawdataGSE109142.csv&quot;</span>,<span class="dt">row.names =</span> <span class="dv">1</span>)
+
+<span class="co">#Merge data and remove 0 counts</span>
+data &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(dataGSE109142)
+sel &lt;-<span class="st"> </span><span class="kw">apply</span>(data,<span class="dv">1</span>,<span class="cf">function</span>(x) <span class="kw">sum</span>(x <span class="op">&gt;</span><span class="st"> </span><span class="dv">5</span>) <span class="op">&gt;</span><span class="st"> </span><span class="kw">ncol</span>(data)<span class="op">*</span><span class="fl">0.1</span> )
+data &lt;-<span class="st"> </span>data[sel,]
+<span class="co">#data &lt;- log2(data+1)</span>
+<span class="kw">head</span>(data)
+
+<span class="co">#Merge metadata</span>
+phenotData &lt;-<span class="st"> </span>GSE109142_meta
+Group &lt;-<span class="st"> </span>phenotData<span class="op">$</span><span class="st">`</span><span class="dt">week 4 remission:ch1</span><span class="st">`</span>
+phenotData[<span class="dv">1</span>,]</code></pre></div>
+<hr />
+</div>
+<div id="perfoming-initial-exploratory-data-anlaysis" class="section level1">
+<h1><span class="header-section-number">4</span> Perfoming initial Exploratory data Anlaysis</h1>
+<p>Since we observe a strong batch effect due to sex differences, we corrected it using ComBat</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Correcting sample-wise data distribution</span>
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">1</span>)
+<span class="kw">shist</span>(data,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotRLE</span>(data,<span class="dt">outline=</span>F,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lty=</span><span class="dv">1</span>,<span class="dt">border=</span><span class="st">&quot;grey&quot;</span>, <span class="dt">main=</span><span class="kw">paste0</span>(<span class="st">&quot;RLE&quot;</span>),<span class="dt">las=</span><span class="dv">2</span>,<span class="dt">cex.axis=</span><span class="fl">0.5</span>,<span class="dt">cex.main=</span><span class="fl">0.8</span>,<span class="dt">cex=</span><span class="fl">0.1</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>,<span class="fl">0.5</span>))</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">modCombat &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="dv">1</span>,<span class="dt">data=</span>phenotData)
+combat_edata &lt;-<span class="st"> </span><span class="kw">ComBat</span>(<span class="dt">dat=</span>data,<span class="dt">batch=</span>phenotData<span class="op">$</span><span class="st">`</span><span class="dt">Sex:ch1</span><span class="st">`</span>,<span class="dt">mod=</span>modCombat)
+combat_edata[combat_edata<span class="op">&lt;</span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
+
+
+y &lt;-<span class="st"> </span><span class="kw">DGEList</span>(<span class="dt">counts=</span>combat_edata, modCombat,<span class="dt">remove.zeros =</span> T)
+y &lt;-<span class="st"> </span><span class="kw">calcNormFactors</span>(y,<span class="dt">method =</span> <span class="st">&quot;TMM&quot;</span>)
+y &lt;-<span class="st"> </span><span class="kw">estimateCommonDisp</span>(y)
+normcounts &lt;-<span class="st"> </span><span class="kw">cpm</span>(y, <span class="dt">log =</span> T, <span class="dt">prior.count =</span> <span class="dv">1</span>, <span class="dt">normalized.lib.sizes =</span> T)
+
+
+raw_data &lt;-<span class="st"> </span>data
+data &lt;-<span class="st"> </span>normcounts
+
+<span class="kw">shist</span>(data,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>)</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-4-3.png" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotRLE</span>(data,<span class="dt">outline=</span>F,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lty=</span><span class="dv">1</span>,<span class="dt">border=</span><span class="st">&quot;grey&quot;</span>, <span class="dt">main=</span><span class="kw">paste0</span>(<span class="st">&quot;RLE&quot;</span>),<span class="dt">las=</span><span class="dv">2</span>,<span class="dt">cex.axis=</span><span class="fl">0.5</span>,<span class="dt">cex.main=</span><span class="fl">0.8</span>,<span class="dt">cex=</span><span class="fl">0.1</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>,<span class="fl">0.5</span>))</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-4-4.png" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#plotMDS(ndata,pch=16,col=&quot;red&quot;)</span></code></pre></div>
+<hr />
+</div>
+<div id="load-plot-series-function" class="section level1">
+<h1><span class="header-section-number">5</span> Load plot series function</h1>
+<p>Here, we created a series of plots to explore the data with ease. Therefore, we can simply source that function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">source</span>(<span class="st">&quot;plot_functions.R&quot;</span>)</code></pre></div>
+<hr />
+</div>
+<div id="selecting-the-top-variable-genes" class="section level1">
+<h1><span class="header-section-number">6</span> Selecting the top variable genes</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rowVAR &lt;-<span class="st"> </span><span class="kw">apply</span>(data,<span class="dv">1</span>,<span class="cf">function</span>(x){<span class="kw">var</span>(x)})
+top_rowVAR &lt;-<span class="st"> </span><span class="kw">sort</span>(rowVAR,<span class="dt">decreasing =</span> T)[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>]
+VAR_select &lt;-<span class="st"> </span><span class="kw">names</span>(top_rowVAR)
+d_VAR &lt;-<span class="st"> </span>data[VAR_select,]
+a&lt;-<span class="st"> </span><span class="kw">suppressWarnings</span>(<span class="kw">plot_series</span>(d_VAR))</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="selecting-the-top-cv-genes" class="section level1">
+<h1><span class="header-section-number">7</span> Selecting the top CV genes</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rowCV &lt;-<span class="st"> </span><span class="kw">apply</span>(data,<span class="dv">1</span>,<span class="cf">function</span>(x){<span class="kw">var</span>(x)<span class="op">/</span><span class="kw">mean</span>(x)})
+top_rowCV &lt;-<span class="st"> </span><span class="kw">sort</span>(rowCV,<span class="dt">decreasing =</span> T)[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>]
+CV_select &lt;-<span class="st"> </span><span class="kw">names</span>(top_rowCV)
+d_CV &lt;-<span class="st"> </span>data[CV_select,]
+a&lt;-<span class="st"> </span><span class="kw">suppressWarnings</span>(<span class="kw">plot_series</span>(d_CV))</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
+</div>
+<div id="using-mouse-pc1-and-pc2-together-to-separate" class="section level1">
+<h1><span class="header-section-number">8</span> Using MOUSE PC1 and PC2 together to separate</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">100</span>
+PC1 &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">read.csv</span>(<span class="kw">paste0</span>(<span class="st">&quot;/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/20170825-Heatmap cluster GO-enrichment DSS 9 clusters/Leading genes PC1.csv&quot;</span>),<span class="dt">row.names =</span> <span class="dv">1</span>))
+PC2 &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">read.csv</span>(<span class="kw">paste0</span>(<span class="st">&quot;/Users/Czarnewski/Box Sync/Paulo_data/20160808 - RNAseq data from DSS and Citrobacter kinetics/20170825-Heatmap cluster GO-enrichment DSS 9 clusters/Leading genes PC2.csv&quot;</span>),<span class="dt">row.names =</span> <span class="dv">1</span>))
+PC_genes &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">c</span>(<span class="kw">rownames</span>(PC1)[<span class="dv">1</span><span class="op">:</span>n],<span class="kw">rownames</span>(PC2)[<span class="dv">1</span><span class="op">:</span>n]))
+h_PC &lt;-<span class="st"> </span>homologs[homologs[,<span class="dv">1</span>] <span class="op">%in%</span><span class="st"> </span>PC_genes,]
+h_PC &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">unique</span>(<span class="kw">as.vector</span>(h_PC[,<span class="dv">2</span>])))
+cPC &lt;-<span class="st"> </span>data[h_PC[h_PC <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(data)],]
+<span class="kw">suppressWarnings</span>(a &lt;-<span class="st"> </span><span class="kw">plot_series</span>(cPC))</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">t_data &lt;-<span class="st"> </span>cPC
+UC_subtype &lt;-<span class="st"> </span><span class="kw">classify</span>(cPC)</code></pre></div>
+</div>
+<div id="plotting-genes-from-mouse-pc" class="section level1">
+<h1><span class="header-section-number">9</span> Plotting genes from mouse PC</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">10</span>,<span class="dt">mar =</span> <span class="kw">c</span>(<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>))
+
+<span class="kw">set.seed</span>(<span class="dv">123</span>)
+tSNE &lt;-<span class="st"> </span><span class="kw">Rtsne</span>(<span class="kw">t</span>(data),<span class="dt">perplexity =</span> <span class="dv">30</span>,<span class="dt">pca =</span> T,<span class="dt">max_iter =</span> <span class="dv">1000</span>,<span class="dt">theta =</span> <span class="fl">0.0</span>)
+<span class="co">#UC_subtype &lt;- classify(t_data)</span>
+<span class="kw">plot</span>(a[,<span class="dv">1</span>],a[,<span class="dv">2</span>],<span class="dt">col=</span>pallete[UC_subtype])
+
+model &lt;-<span class="st"> </span><span class="kw">glm</span>(UC_subtype<span class="op">~</span>a,<span class="dt">family=</span><span class="st">&quot;binomial&quot;</span>)
+slope &lt;-<span class="st"> </span><span class="kw">coef</span>(model)[<span class="dv">2</span>]<span class="op">/</span>(<span class="op">-</span><span class="kw">coef</span>(model)[<span class="dv">3</span>])
+intercept &lt;-<span class="st"> </span><span class="kw">coef</span>(model)[<span class="dv">1</span>]<span class="op">/</span>(<span class="op">-</span><span class="kw">coef</span>(model)[<span class="dv">3</span>]) 
+
+<span class="co">#Sort genes by absolute fold-change</span>
+ordered_list &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">apply</span>(t_data,<span class="dv">1</span>,<span class="cf">function</span>(x) <span class="kw">abs</span>(<span class="kw">mean</span>(x[UC_subtype<span class="op">==</span><span class="kw">levels</span>(UC_subtype)[<span class="dv">1</span>]]) <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(x[UC_subtype<span class="op">==</span><span class="kw">levels</span>(UC_subtype)[<span class="dv">2</span>]])) ),<span class="dt">decreasing =</span> T)
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">names</span>(ordered_list)){
+  grad &lt;-<span class="st"> </span>(t_data[i,] <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(t_data[i,],.<span class="dv">05</span>)) <span class="op">/</span><span class="st"> </span>(<span class="kw">quantile</span>(t_data[i,],.<span class="dv">95</span>) <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(t_data[i,],.<span class="dv">05</span>))
+  grad[grad <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span>; grad[grad <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+  <span class="kw">plot</span>(a[,<span class="dv">1</span>],a[,<span class="dv">2</span>],<span class="dt">cex=</span><span class="dv">1</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">yaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;grey90&quot;</span>,<span class="st">&quot;grey80&quot;</span>,<span class="st">&quot;navy&quot;</span>))(<span class="dv">50</span>)[grad<span class="op">*</span><span class="dv">49</span><span class="op">+</span><span class="dv">1</span>],<span class="dt">pch=</span><span class="kw">as.numeric</span>(UC_subtype)<span class="op">+</span><span class="dv">15</span>,<span class="dt">line=</span>.<span class="dv">5</span>,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="kw">min</span>(a[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(a[,<span class="dv">1</span>])<span class="op">*</span>out),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="kw">min</span>(a[,<span class="dv">2</span>])<span class="op">*</span>out,<span class="kw">max</span>(a[,<span class="dv">2</span>])<span class="op">*</span>out),<span class="dt">main=</span>i)
+  <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>);<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>)
+  <span class="kw">text</span>(<span class="kw">min</span>(a[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(a[,<span class="dv">2</span>])<span class="op">*</span>out,i,<span class="dt">adj=</span><span class="dv">0</span>,<span class="dt">cex=</span><span class="dv">1</span>)
+  <span class="kw">abline</span>(<span class="kw">c</span>(intercept,slope),<span class="dt">lty=</span><span class="dv">2</span>)}</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-1.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-2.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-3.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-4.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-5.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-6.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-7.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-9-8.png" width="960" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">3</span>,<span class="dv">5</span>)
+<span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="fl">2.5</span>,<span class="dv">2</span>,<span class="dv">3</span>))
+
+<span class="kw">plot</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>],tSNE<span class="op">$</span>Y[,<span class="dv">2</span>],<span class="dt">cex=</span><span class="fl">1.5</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">yaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;grey&quot;</span>,<span class="st">&quot;darkgreen&quot;</span>)[Group],<span class="dt">pch=</span><span class="kw">as.numeric</span>(UC_subtype)<span class="op">+</span><span class="dv">15</span>,<span class="dt">line=</span>.<span class="dv">5</span>,<span class="dt">xlab=</span><span class="st">&quot;tSNE1&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;tSNE2&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out),<span class="dt">main=</span><span class="st">&quot;tSNE resp. to IFX&quot;</span>)
+<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>);<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>)
+<span class="kw">abline</span>(intercept,slope,<span class="dt">lty=</span><span class="dv">2</span>)
+
+temp &lt;-<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">levels</span>(UC_subtype),<span class="cf">function</span>(x) <span class="kw">sum</span>(<span class="kw">as.character</span>(Group[<span class="kw">as.character</span>(UC_subtype)<span class="op">==</span>x])<span class="op">==</span><span class="st">&quot;Yes&quot;</span>)<span class="op">/</span><span class="kw">sum</span>(<span class="kw">as.character</span>(UC_subtype)<span class="op">==</span>x)<span class="op">*</span><span class="dv">100</span> )
+<span class="kw">barplot</span>(temp,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span>pallete[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(<span class="kw">levels</span>(UC_subtype))],<span class="dt">ylab=</span><span class="st">&quot;% response to IFX&quot;</span>)
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">3</span>)
+
+<span class="kw">barplot</span>(<span class="dv">100</span><span class="op">-</span>temp,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span>pallete[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(<span class="kw">levels</span>(UC_subtype))],<span class="dt">ylab=</span><span class="st">&quot;% refractory to IFX&quot;</span>)
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">3</span>)
+
+<span class="kw">barplot</span>(<span class="kw">rbind</span>(temp,<span class="dv">100</span><span class="op">-</span>temp),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;dark green&quot;</span>,<span class="st">&quot;pink&quot;</span>),<span class="dt">ylab=</span><span class="st">&quot;% refractory to IFX&quot;</span>,<span class="dt">border=</span><span class="dv">0</span>)
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">3</span>)
+<span class="kw">plot</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="dt">type=</span><span class="st">&quot;n&quot;</span>,<span class="dt">axes=</span>F,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;&quot;</span>)
+<span class="kw">legend</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="kw">c</span>(<span class="st">&quot;resp.&quot;</span>,<span class="st">&quot;non-resp.&quot;</span>),<span class="dt">pch=</span><span class="dv">15</span>,<span class="dt">pt.cex =</span> <span class="dv">2</span>,<span class="dt">col =</span><span class="kw">c</span>(<span class="st">&quot;dark green&quot;</span>,<span class="st">&quot;pink&quot;</span>),<span class="dt">box.lwd =</span> <span class="dv">0</span>)</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-10-1.png" width="960" /></p>
+</div>
+<div id="plotting-metadata-from-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">10</span> Plotting metadata from UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">7</span>)
+<span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="fl">2.5</span>,<span class="dv">2</span>,<span class="dv">3</span>))
+temp &lt;-<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">levels</span>(UC_subtype),<span class="cf">function</span>(x) <span class="kw">sum</span>(<span class="kw">as.character</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">Sex:ch1</span><span class="st">`</span>[<span class="kw">as.character</span>(UC_subtype)<span class="op">==</span>x])<span class="op">==</span><span class="st">&quot;Male&quot;</span>)<span class="op">/</span><span class="kw">sum</span>(<span class="kw">as.character</span>(UC_subtype)<span class="op">==</span>x)<span class="op">*</span><span class="dv">100</span> )
+<span class="kw">barplot</span>(<span class="kw">rbind</span>(temp,<span class="dv">100</span><span class="op">-</span>temp),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;cyan4&quot;</span>,<span class="st">&quot;pink2&quot;</span>),<span class="dt">ylab=</span><span class="st">&quot;% refractory to IFX&quot;</span>,<span class="dt">border=</span><span class="dv">0</span>)
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>,<span class="dt">lwd=</span><span class="dv">3</span>)
+<span class="kw">plot</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),<span class="dt">type=</span><span class="st">&quot;n&quot;</span>,<span class="dt">axes=</span>F,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;&quot;</span>)
+<span class="kw">legend</span>(<span class="st">&quot;topleft&quot;</span>,<span class="kw">c</span>(<span class="st">&quot;Male&quot;</span>,<span class="st">&quot;Female&quot;</span>),<span class="dt">pch=</span><span class="dv">15</span>,<span class="dt">pt.cex =</span> <span class="dv">2</span>,<span class="dt">col =</span><span class="kw">c</span>(<span class="st">&quot;cyan4&quot;</span>,<span class="st">&quot;pink2&quot;</span>),<span class="dt">box.lwd =</span> <span class="dv">0</span>)
+
+
+rvar &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">15</span>,.<span class="dv">15</span>)
+<span class="kw">boxplot</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">histology severity score:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">border=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">outline=</span>F,<span class="dt">col=</span><span class="kw">paste0</span>(pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dv">10</span>),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">5</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylab=</span><span class="st">&quot;histology severity score&quot;</span>,<span class="dt">main=</span><span class="st">&quot;Histological Score&quot;</span>)
+<span class="kw">beeswarm</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">histology severity score:ch1</span><span class="st">`</span>)<span class="op">+</span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">2</span>,.<span class="dv">2</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">cex=</span>.<span class="dv">3</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">add=</span>T,<span class="dt">col=</span>pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])
+stat &lt;-<span class="st"> </span><span class="kw">signif</span>(<span class="kw">wilcox.test</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">histology severity score:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype)<span class="op">$</span>p.value,<span class="dv">3</span>)
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="fl">4.7</span>,<span class="kw">ifelse</span>(stat<span class="op">&lt;</span>.<span class="dv">01</span>,<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>,stat),<span class="st">&quot;ns&quot;</span>))
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(<span class="fl">4.3</span>,<span class="fl">4.3</span>))
+
+
+rvar &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">15</span>,.<span class="dv">15</span>)
+<span class="kw">boxplot</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">age at diagnosis:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">border=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">outline=</span>F,<span class="dt">col=</span><span class="kw">paste0</span>(pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dv">10</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylab=</span><span class="st">&quot;age at diagnosis&quot;</span>,<span class="dt">main=</span><span class="st">&quot;age at diagnosis&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">20</span>))
+<span class="kw">beeswarm</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">age at diagnosis:ch1</span><span class="st">`</span>)<span class="op">+</span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">3</span>,.<span class="dv">3</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">cex=</span>.<span class="dv">4</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">add=</span>T,<span class="dt">col=</span>pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])
+stat &lt;-<span class="st"> </span><span class="kw">signif</span>(<span class="kw">wilcox.test</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">age at diagnosis:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype)<span class="op">$</span>p.value,<span class="dv">3</span>)
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="dv">19</span>,<span class="kw">ifelse</span>(stat<span class="op">&lt;</span>.<span class="dv">01</span>,<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>,stat),<span class="st">&quot;ns&quot;</span>))
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(<span class="dv">18</span>,<span class="dv">18</span>))
+
+
+rvar &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">1</span>,.<span class="dv">1</span>)
+<span class="kw">boxplot</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">baseline calprotectin:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">border=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">outline=</span>F,<span class="dt">col=</span><span class="kw">paste0</span>(pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dv">10</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylab=</span><span class="st">&quot;calprotectin&quot;</span>,<span class="dt">main=</span><span class="st">&quot;calprotectin&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">9000</span>))
+<span class="kw">beeswarm</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">baseline calprotectin:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">cex=</span>.<span class="dv">3</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">add=</span>T,<span class="dt">col=</span>pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])
+stat &lt;-<span class="st"> </span><span class="kw">signif</span>(<span class="kw">wilcox.test</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">baseline calprotectin:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype)<span class="op">$</span>p.value,<span class="dv">3</span>)
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="dv">8800</span>,<span class="kw">ifelse</span>(stat<span class="op">&lt;</span>.<span class="dv">01</span>,<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>,stat),<span class="st">&quot;ns&quot;</span>))
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(<span class="dv">8200</span>,<span class="dv">8200</span>))
+
+rvar &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">1</span>,.<span class="dv">1</span>)
+<span class="kw">boxplot</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">total mayo score:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">border=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">outline=</span>F,<span class="dt">col=</span><span class="kw">paste0</span>(pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dv">10</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylab=</span><span class="st">&quot;Total Mayo Score&quot;</span>,<span class="dt">main=</span><span class="st">&quot;Total Mayo&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">14</span>))
+<span class="kw">beeswarm</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">total mayo score:ch1</span><span class="st">`</span>)<span class="op">+</span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">15</span>,.<span class="dv">15</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">cex=</span>.<span class="dv">3</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">add=</span>T,<span class="dt">col=</span>pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])
+stat &lt;-<span class="st"> </span><span class="kw">signif</span>(<span class="kw">wilcox.test</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">total mayo score:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype)<span class="op">$</span>p.value,<span class="dv">3</span>)
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="dv">14</span>,<span class="kw">ifelse</span>(stat<span class="op">&lt;</span>.<span class="dv">01</span>,<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>,stat),<span class="st">&quot;ns&quot;</span>))
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(<span class="dv">13</span>,<span class="dv">13</span>))
+
+rvar &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span>.<span class="dv">1</span>,.<span class="dv">1</span>)
+<span class="kw">boxplot</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">pucai:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">border=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">outline=</span>F,<span class="dt">col=</span><span class="kw">paste0</span>(pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dv">10</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">ylab=</span><span class="st">&quot;Pucai&quot;</span>,<span class="dt">main=</span><span class="st">&quot;Pucai&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>))
+<span class="kw">beeswarm</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">pucai:ch1</span><span class="st">`</span>)<span class="op">+</span><span class="kw">runif</span>(<span class="dt">n =</span> <span class="kw">length</span>(UC_subtype),<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>) <span class="op">~</span><span class="st"> </span>UC_subtype,<span class="dt">cex=</span>.<span class="dv">3</span>,<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">add=</span>T,<span class="dt">col=</span>pallete[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])
+stat &lt;-<span class="st"> </span><span class="kw">signif</span>(<span class="kw">wilcox.test</span>(<span class="kw">as.numeric</span>(phenotData<span class="op">$</span><span class="st">`</span><span class="dt">pucai:ch1</span><span class="st">`</span>) <span class="op">~</span><span class="st"> </span>UC_subtype)<span class="op">$</span>p.value,<span class="dv">3</span>)
+<span class="kw">text</span>(<span class="fl">1.5</span>,<span class="dv">95</span>,<span class="kw">ifelse</span>(stat<span class="op">&lt;</span>.<span class="dv">01</span>,<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>,stat),<span class="st">&quot;ns&quot;</span>))
+<span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="kw">c</span>(<span class="dv">90</span>,<span class="dv">90</span>))</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-11-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="computing-differentially-expressed-genes-between-uc1-and-uc2" class="section level1">
+<h1><span class="header-section-number">11</span> Computing differentially expressed genes between UC1 and UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">set &lt;-<span class="st"> </span><span class="kw">ExpressionSet</span>(<span class="kw">as.matrix</span>(data)); <span class="kw">pData</span>(set) &lt;-<span class="st"> </span>phenotData
+design &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span>UC_subtype)
+<span class="kw">colnames</span>(design) &lt;-<span class="st"> </span><span class="kw">levels</span>(UC_subtype)
+
+fit &lt;-<span class="st"> </span><span class="kw">lmFit</span>(set, design)
+fit &lt;-<span class="st"> </span><span class="kw">contrasts.fit</span>(fit,<span class="dt">coefficients =</span> <span class="dv">2</span>)
+fit &lt;-<span class="st"> </span><span class="kw">eBayes</span>(fit)
+top &lt;-<span class="st"> </span><span class="kw">topTable</span>(fit,<span class="dt">number =</span> <span class="st">&quot;all&quot;</span>)
+
+<span class="co"># </span>
+<span class="co"># fit &lt;- glmFit(y, design)</span>
+<span class="co"># lrt &lt;- glmLRT(fit)</span>
+<span class="co"># top &lt;- topTags(lrt,adjust.method = &quot;BH&quot;,n = &quot;all&quot;,sort.by = &quot;p.value&quot;)[[1]]</span>
+<span class="co"># colnames(top) &lt;- sub(&quot;Groupday&quot;,&quot;d&quot;,colnames(top))</span>
+<span class="co"># head(top,50)</span>
+
+pValue &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(top)[,<span class="st">&quot;P.Value&quot;</span>]
+pValue[pValue<span class="op">==</span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="kw">min</span>(pValue[pValue<span class="op">!=</span><span class="dv">0</span>])
+logFC &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(top)[,<span class="st">&quot;logFC&quot;</span>]
+FDR &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(top)[,<span class="st">&quot;adj.P.Val&quot;</span>]
+FDR[FDR<span class="op">==</span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="kw">min</span>(FDR[FDR<span class="op">!=</span><span class="dv">0</span>])
+
+pT &lt;-<span class="st"> </span><span class="dv">10</span>
+lT &lt;-<span class="st"> </span>.<span class="dv">7</span>
+  
+top_DE &lt;-<span class="st"> </span><span class="kw">rownames</span>(top)[<span class="kw">ifelse</span>(<span class="kw">abs</span>(logFC) <span class="op">&lt;</span><span class="st"> </span>lT,<span class="ot">FALSE</span>,<span class="kw">ifelse</span>(<span class="op">-</span><span class="kw">log10</span>(FDR) <span class="op">&lt;</span><span class="st"> </span>pT,<span class="ot">FALSE</span>,<span class="ot">TRUE</span>))]
+
+<span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">2</span>)
+<span class="kw">plot</span>(logFC,<span class="op">-</span><span class="kw">log10</span>(FDR),<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>,<span class="dv">4</span>),<span class="dt">col=</span><span class="kw">ifelse</span>(<span class="kw">names</span>(logFC) <span class="op">%in%</span><span class="st"> </span>top_DE,<span class="st">&quot;red&quot;</span>,<span class="st">&quot;black&quot;</span>),<span class="dt">cex=</span>.<span class="dv">6</span>,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(<span class="op">-</span><span class="kw">log10</span>(FDR))<span class="op">*</span><span class="fl">1.1</span> ),<span class="dt">las=</span><span class="dv">1</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="op">-</span>lT,lT),<span class="dt">h=</span>pT,<span class="dt">lty=</span><span class="dv">5</span>,<span class="dt">col=</span><span class="st">&quot;grey50&quot;</span>)
+
+<span class="kw">plot</span>(logFC,<span class="op">-</span><span class="kw">log10</span>(FDR),<span class="dt">pch=</span><span class="dv">16</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>,<span class="dv">4</span>),<span class="dt">col=</span><span class="kw">ifelse</span>(<span class="kw">names</span>(logFC) <span class="op">%in%</span><span class="st"> </span>top_DE,<span class="st">&quot;red&quot;</span>,<span class="st">&quot;black&quot;</span>),<span class="dt">cex=</span>.<span class="dv">6</span>,<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(<span class="op">-</span><span class="kw">log10</span>(FDR))<span class="op">*</span><span class="fl">1.1</span> ),<span class="dt">las=</span><span class="dv">1</span>)
+<span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="op">-</span>lT,lT),<span class="dt">h=</span>pT,<span class="dt">lty=</span><span class="dv">5</span>,<span class="dt">col=</span><span class="st">&quot;grey50&quot;</span>)
+<span class="kw">text</span>(logFC[top_DE],<span class="op">-</span><span class="kw">log10</span>(FDR)[top_DE],top_DE,<span class="dt">pos=</span><span class="dv">3</span>,<span class="dt">cex=</span>.<span class="dv">4</span>)</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-12-1.png" width="960" /></p>
+<hr />
+</div>
+<div id="ploting-the-variance-of-mouse-pc-genes-in-the-human-dataset" class="section level1">
+<h1><span class="header-section-number">12</span> Ploting the variance of mouse PC genes in the human dataset</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">3</span>,<span class="dv">1</span>),<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">4</span>))
+
+<span class="kw">barplot</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="kw">ifelse</span>(<span class="kw">names</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>]) <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(cPC),<span class="st">&quot;red&quot;</span>,<span class="st">&quot;grey&quot;</span>),<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>])<span class="op">*</span><span class="fl">1.4</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">main=</span><span class="st">&quot;human rowVar&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;variance&quot;</span>,<span class="dt">border=</span><span class="ot">NA</span>)
+<span class="kw">legend</span>(<span class="st">&quot;bottomright&quot;</span>,<span class="kw">c</span>(<span class="st">&quot;found</span><span class="ch">\n</span><span class="st">in mouse&quot;</span>),<span class="dt">pch =</span> <span class="dv">22</span>,<span class="dt">bty =</span> <span class="st">&quot;n&quot;</span>,<span class="dt">pt.bg =</span> <span class="st">&quot;red&quot;</span>,<span class="dt">pt.cex =</span> <span class="dv">2</span>)
+<span class="kw">sum</span>(<span class="kw">names</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>]) <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(cPC))<span class="op">/</span><span class="kw">length</span>(<span class="kw">names</span>(top_rowVAR[<span class="dv">100</span><span class="op">:</span><span class="dv">1</span>]))<span class="op">*</span><span class="dv">100</span>
+
+temp &lt;-<span class="st"> </span><span class="kw">sort</span>(rowVAR,<span class="dt">decreasing =</span> T)
+<span class="kw">barplot</span>(temp[<span class="kw">names</span>(temp) <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(cPC)][<span class="kw">nrow</span>(cPC)<span class="op">:</span><span class="dv">1</span>],<span class="dt">horiz=</span>T,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="kw">max</span>(temp)<span class="op">*</span><span class="fl">1.4</span>),<span class="dt">yaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">xaxs=</span><span class="st">&quot;i&quot;</span>,<span class="dt">main=</span><span class="st">&quot;human rowVar (only mouse genes)&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;variance&quot;</span>,<span class="dt">border=</span><span class="ot">NA</span>)
+<span class="kw">legend</span>(<span class="st">&quot;bottomright&quot;</span>,<span class="kw">c</span>(<span class="st">&quot;found</span><span class="ch">\n</span><span class="st">in mouse&quot;</span>),<span class="dt">pch =</span> <span class="dv">22</span>,<span class="dt">bty =</span> <span class="st">&quot;n&quot;</span>,<span class="dt">pt.bg =</span> <span class="st">&quot;red&quot;</span>,<span class="dt">pt.cex =</span> <span class="dv">2</span>)
+<span class="kw">sum</span>(<span class="kw">rownames</span>(cPC) <span class="op">%in%</span><span class="st"> </span>top_DE)<span class="op">/</span><span class="kw">length</span>(<span class="kw">rownames</span>(cPC))<span class="op">*</span><span class="dv">100</span></code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-13-1.png" width="960" /></p>
+<pre><code>## [1] 6
+## [1] 52.7027</code></pre>
+<hr />
+</div>
+<div id="ploting-heatmap-comparing-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">13</span> Ploting heatmap comparing UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>()
+ann_groups &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">ann_groups=</span>UC_subtype,<span class="dt">row.names=</span><span class="kw">colnames</span>(data))
+tag_colors &lt;-<span class="st"> </span>pallete[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(<span class="kw">levels</span>(UC_subtype))]; <span class="kw">names</span>(tag_colors) &lt;-<span class="st"> </span><span class="kw">unique</span>(ann_groups)[[<span class="dv">1</span>]]
+o &lt;-<span class="st"> </span><span class="kw">order</span>(ann_groups<span class="op">$</span>ann_groups)
+
+<span class="kw">pheatmap</span>(data[top_DE,o],<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;navy&quot;</span>,<span class="st">&quot;navy&quot;</span>,<span class="st">&quot;white&quot;</span>,<span class="st">&quot;firebrick&quot;</span>,<span class="st">&quot;firebrick&quot;</span>))(<span class="dv">50</span>),<span class="dt">clustering_method =</span> <span class="st">&quot;ward.D2&quot;</span>,<span class="dt">border_color =</span> <span class="ot">NA</span>,<span class="dt">scale =</span> <span class="st">&quot;row&quot;</span>,<span class="dt">annotation_col =</span> <span class="kw">as.data.frame</span>(ann_groups), <span class="dt">annotation_colors =</span>  <span class="kw">list</span>(<span class="dt">ann_groups =</span> tag_colors),<span class="dt">cluster_cols =</span> F,<span class="dt">fontsize_row =</span> <span class="dv">5</span>)</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+</div>
+<div id="comparison-of-microarray-results-to-rnaseq-results" class="section level1">
+<h1><span class="header-section-number">14</span> Comparison of microarray results to RNAseq results</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">2</span>),<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))
+old &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;../processed_files/DEGs_UC1_vs_UC2.csv&quot;</span>,<span class="dt">row.names =</span> <span class="dv">1</span>)
+sel &lt;-<span class="st"> </span><span class="kw">rownames</span>(old)[<span class="kw">ifelse</span>(<span class="kw">abs</span>(old<span class="op">$</span>logFC) <span class="op">&lt;</span><span class="st"> </span>lT,<span class="ot">FALSE</span>,<span class="kw">ifelse</span>(<span class="op">-</span><span class="kw">log10</span>(old<span class="op">$</span>adj.P.Val) <span class="op">&lt;</span><span class="st"> </span>pT,<span class="ot">FALSE</span>,<span class="ot">TRUE</span>))]
+
+b &lt;-<span class="st"> </span><span class="kw">venn</span>(<span class="kw">list</span>(<span class="st">&quot;RNAseq&quot;</span>=top_DE,<span class="st">&quot;microarray&quot;</span>=sel))
+b &lt;-<span class="st"> </span><span class="kw">attributes</span>(b)
+<span class="kw">print</span>(b<span class="op">$</span>intersections<span class="op">$</span><span class="st">`</span><span class="dt">RNAseq:microarray</span><span class="st">`</span>)
+
+
+
+<span class="co">#Plot association between p-values </span>
+<span class="kw">plot</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dt">frame.plot=</span>F,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="fl">0.5</span>,<span class="fl">3.5</span>),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">35</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;-log10(FDR)&quot;</span>,<span class="dt">type=</span><span class="st">&quot;n&quot;</span> )
+<span class="cf">for</span> (i <span class="cf">in</span> b<span class="op">$</span>intersections<span class="op">$</span><span class="st">`</span><span class="dt">RNAseq:microarray</span><span class="st">`</span>){
+  <span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>),<span class="op">-</span><span class="kw">log10</span>( <span class="kw">c</span>(old[i,<span class="st">&quot;adj.P.Val&quot;</span>],top[i,<span class="st">&quot;adj.P.Val&quot;</span>])),<span class="dt">col=</span><span class="st">&quot;grey&quot;</span> )
+}
+<span class="kw">points</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="kw">length</span>(sel)) ,<span class="kw">rep</span>(<span class="dv">3</span>,<span class="kw">length</span>(top_DE))) ,<span class="op">-</span><span class="kw">log10</span>(<span class="kw">c</span>(old[sel,<span class="st">&quot;adj.P.Val&quot;</span>],top[top_DE,<span class="st">&quot;adj.P.Val&quot;</span>])),
+       <span class="dt">col=</span>)
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">4</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">mtext</span>(<span class="kw">c</span>(<span class="st">&quot;microarray</span><span class="ch">\n</span><span class="st">(n=102)&quot;</span>,<span class="st">&quot;RNAseq</span><span class="ch">\n</span><span class="st">(n=206)&quot;</span>),<span class="dt">side =</span> <span class="dv">1</span>,<span class="dt">at=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))
+
+
+
+<span class="co">#Plot association between fold changes</span>
+<span class="kw">plot</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dt">frame.plot=</span>F,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="fl">0.5</span>,<span class="fl">3.5</span>),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>,<span class="dv">4</span>),<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;log2(FC)&quot;</span>,<span class="dt">type=</span><span class="st">&quot;n&quot;</span> )
+<span class="cf">for</span> (i <span class="cf">in</span> b<span class="op">$</span>intersections<span class="op">$</span><span class="st">`</span><span class="dt">RNAseq:microarray</span><span class="st">`</span>){
+  <span class="kw">lines</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>),<span class="kw">c</span>(old[i,<span class="st">&quot;logFC&quot;</span>],top[i,<span class="st">&quot;logFC&quot;</span>]),<span class="dt">col=</span><span class="st">&quot;grey&quot;</span> )
+}
+<span class="kw">points</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="kw">length</span>(sel)) ,<span class="kw">rep</span>(<span class="dv">3</span>,<span class="kw">length</span>(top_DE))) ,<span class="kw">c</span>(old[sel,<span class="st">&quot;logFC&quot;</span>],top[top_DE,<span class="st">&quot;logFC&quot;</span>]))
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="kw">c</span>(.<span class="dv">6</span>,<span class="op">-</span>.<span class="dv">6</span>),<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">mtext</span>(<span class="kw">c</span>(<span class="st">&quot;microarray</span><span class="ch">\n</span><span class="st">(n=102)&quot;</span>,<span class="st">&quot;RNAseq</span><span class="ch">\n</span><span class="st">(n=206)&quot;</span>),<span class="dt">side =</span> <span class="dv">1</span>,<span class="dt">at=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-15-1.png" width="960" /></p>
+<pre><code>##   [1] &quot;CDX2&quot;      &quot;HSD11B2&quot;   &quot;AQP9&quot;      &quot;FPR2&quot;      &quot;CXCR1&quot;    
+##   [6] &quot;CXCR2&quot;     &quot;MCEMP1&quot;    &quot;CSF3R&quot;     &quot;CXCL6&quot;     &quot;STC1&quot;     
+##  [11] &quot;CWH43&quot;     &quot;PROK2&quot;     &quot;BCL6&quot;      &quot;S100A12&quot;   &quot;WNT5A&quot;    
+##  [16] &quot;PLAU&quot;      &quot;CMTM2&quot;     &quot;THBD&quot;      &quot;IL1R1&quot;     &quot;ANGPTL2&quot;  
+##  [21] &quot;FAM20C&quot;    &quot;DYSF&quot;      &quot;SRPX2&quot;     &quot;VNN2&quot;      &quot;CTSL&quot;     
+##  [26] &quot;EPB41L4B&quot;  &quot;LILRB3&quot;    &quot;HGF&quot;       &quot;IL1RN&quot;     &quot;WISP1&quot;    
+##  [31] &quot;CSF3&quot;      &quot;S100A8&quot;    &quot;SELE&quot;      &quot;ICAM1&quot;     &quot;ACSL1&quot;    
+##  [36] &quot;CCR1&quot;      &quot;TREM1&quot;     &quot;TNFAIP6&quot;   &quot;SOD2&quot;      &quot;S100A9&quot;   
+##  [41] &quot;NCF2&quot;      &quot;SATB2&quot;     &quot;ITGA5&quot;     &quot;G0S2&quot;      &quot;TNFRSF11B&quot;
+##  [46] &quot;ADGRE2&quot;    &quot;TNC&quot;       &quot;HCAR3&quot;     &quot;NAMPT&quot;     &quot;CEBPB&quot;    
+##  [51] &quot;LILRA6&quot;    &quot;PIGZ&quot;      &quot;MNDA&quot;      &quot;BCL2A1&quot;    &quot;HSPA6&quot;    
+##  [56] &quot;MMP3&quot;      &quot;IL18RAP&quot;   &quot;PLEK&quot;      &quot;NXPE4&quot;     &quot;SLC2A3&quot;   
+##  [61] &quot;CD93&quot;      &quot;TLR2&quot;      &quot;FGR&quot;       &quot;CXCL8&quot;     &quot;TGFBI&quot;    
+##  [66] &quot;TMEM158&quot;   &quot;SOCS3&quot;     &quot;C5AR1&quot;     &quot;ARHGAP44&quot;  &quot;NRARP&quot;    
+##  [71] &quot;TIMP1&quot;     &quot;ATP2C2&quot;    &quot;SPHK1&quot;     &quot;PDE4B&quot;     &quot;COL7A1&quot;   
+##  [76] &quot;LILRB2&quot;    &quot;WNK4&quot;      &quot;MMP1&quot;      &quot;PXDN&quot;      &quot;SCNN1A&quot;   
+##  [81] &quot;FAP&quot;       &quot;FFAR2&quot;     &quot;NR3C2&quot;     &quot;PTGS2&quot;     &quot;BASP1&quot;    
+##  [86] &quot;COL6A3&quot;    &quot;IFITM2&quot;    &quot;CTHRC1&quot;    &quot;NXPE1&quot;     &quot;GZMB&quot;     
+##  [91] &quot;COL12A1&quot;   &quot;IL6&quot;       &quot;IL11&quot;      &quot;IL1B&quot;      &quot;IL7R&quot;     
+##  [96] &quot;COL4A1&quot;    &quot;PTP4A3&quot;    &quot;COL4A2&quot;    &quot;COL15A1&quot;   &quot;GBP5&quot;     
+## [101] &quot;FAM3D&quot;     &quot;MAP2K6&quot;    &quot;SELL&quot;      &quot;PYY&quot;       &quot;C10orf99&quot; 
+## [106] &quot;COL1A1&quot;</code></pre>
+<hr />
+</div>
+<div id="tsne-gene-expression-of-degs-between-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">15</span> tSNE gene expression of DEGs between UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">10</span>,<span class="dt">mar =</span> <span class="kw">c</span>(<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.1</span>))
+
+<span class="co">#Sort genes by absolute fold-change</span>
+ordered_list &lt;-<span class="st"> </span><span class="kw">sort</span>(logFC[top_DE])
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">names</span>(ordered_list)){
+  grad &lt;-<span class="st"> </span>(data[i,] <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(data[i,],.<span class="dv">05</span>)) <span class="op">/</span><span class="st"> </span>(<span class="kw">quantile</span>(data[i,],.<span class="dv">95</span>) <span class="op">-</span><span class="st"> </span><span class="kw">quantile</span>(data[i,],.<span class="dv">05</span>))
+  grad[grad <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span><span class="dv">0</span>; grad[grad <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+  <span class="kw">plot</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>],tSNE<span class="op">$</span>Y[,<span class="dv">2</span>],<span class="dt">cex=</span><span class="fl">1.5</span>,<span class="dt">las=</span><span class="dv">1</span>,<span class="dt">xaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">yaxt=</span><span class="st">&quot;n&quot;</span>,<span class="dt">col=</span><span class="kw">colorRampPalette</span>(<span class="kw">c</span>(<span class="st">&quot;grey90&quot;</span>,<span class="st">&quot;grey80&quot;</span>,<span class="st">&quot;navy&quot;</span>))(<span class="dv">50</span>)[grad<span class="op">*</span><span class="dv">49</span><span class="op">+</span><span class="dv">1</span>],<span class="dt">pch=</span><span class="kw">as.numeric</span>(UC_subtype)<span class="op">+</span><span class="dv">15</span>,<span class="dt">line=</span>.<span class="dv">5</span>,<span class="dt">xlab=</span><span class="st">&quot;&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;&quot;</span>,<span class="dt">xlim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out),<span class="dt">ylim=</span><span class="kw">c</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out),<span class="dt">main=</span>i)
+  <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>);<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">labels =</span> <span class="ot">FALSE</span>, <span class="dt">tck =</span> <span class="op">-</span><span class="fl">0.01</span>)
+  <span class="kw">text</span>(<span class="kw">min</span>(tSNE<span class="op">$</span>Y[,<span class="dv">1</span>])<span class="op">*</span>out,<span class="kw">max</span>(tSNE<span class="op">$</span>Y[,<span class="dv">2</span>])<span class="op">*</span>out,i,<span class="dt">adj=</span><span class="dv">0</span>,<span class="dt">cex=</span><span class="fl">1.5</span>)
+  <span class="kw">abline</span>(<span class="kw">c</span>(intercept,slope),<span class="dt">lty=</span><span class="dv">2</span>)}</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-1.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-2.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-3.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-4.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-5.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-6.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-7.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-8.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-9.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-10.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-11.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-12.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-13.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-14.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-15.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-16.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-17.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-18.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-19.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-20.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-21.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-22.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-23.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-24.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-25.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-26.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-27.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-28.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-29.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-30.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-31.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-32.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-33.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-34.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-35.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-36.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-37.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-38.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-39.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-40.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-41.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-42.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-43.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-44.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-45.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-46.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-47.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-48.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-16-49.png" width="960" /></p>
+<hr />
+</div>
+<div id="violinplot-gene-expression-of-degs-between-uc1-vs-uc2" class="section level1">
+<h1><span class="header-section-number">16</span> ViolinPlot gene expression of DEGs between UC1 vs UC2</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mypar</span>(<span class="dv">1</span>,<span class="dv">8</span>,<span class="dt">mar =</span> <span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">1</span>))
+
+
+<span class="co">#Sort genes by absolute fold-change</span>
+ordered_list &lt;-<span class="st"> </span><span class="kw">sort</span>(logFC[top_DE])
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">names</span>(ordered_list)){
+  <span class="kw">my_violins</span>(data[i,],UC_subtype,<span class="dt">main =</span> i,<span class="dt">color =</span> pallete)}</code></pre></div>
+<p><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-1.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-2.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-3.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-4.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-5.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-6.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-7.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-8.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-9.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-10.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-11.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-12.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-13.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-14.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-15.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-16.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-17.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-18.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-19.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-20.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-21.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-22.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-23.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-24.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-25.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-26.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-27.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-28.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-29.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-30.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-31.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-32.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-33.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-34.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-35.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-36.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-37.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-38.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-39.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-40.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-41.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-42.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-43.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-44.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-45.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-46.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-47.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-48.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-49.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-50.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-51.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-52.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-53.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-54.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-55.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-56.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-57.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-58.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-59.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-60.png" width="960" /><img src="uc_classification_rnaseq_files/figure-html/unnamed-chunk-17-61.png" width="960" /></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -66,4 +66,5 @@ plot(tSNE$Y[,1],tSNE$Y[,2],cex=1.5,las=1,xaxt="n",yaxt="n",col=colorRampPalette(
 axis(side = 1, labels = FALSE, tck = -0.01);axis(side = 2, labels = FALSE, tck = -0.01)
 abline(intercept,slope,lty=2)
 
+return(tSNE$Y)
 }

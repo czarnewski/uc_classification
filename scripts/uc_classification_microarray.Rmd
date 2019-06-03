@@ -346,8 +346,6 @@ text(1.5,95,paste0("p = ",signif(t.test(temp[[1]]~factor(temp[[2]]))$p.value,3))
 lines(c(1,2),c(90,90))
 plot(c(0,1),c(0,1),type="n",axes=F,xlab="",ylab="")
 legend(0,1,levels(factor(temp[[3]])),pch=14+as.numeric(factor(levels(factor(temp[[3]])))),pt.cex = 2,col ="black",box.lwd = 0)
-
-
 ```
 
 

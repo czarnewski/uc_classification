@@ -1,5 +1,6 @@
 # UC_classification
-This is a public repository for the code associated to the paper: Czarnewski et al 2019 (Accepted).
+This is a public repository for the code associated to the paper: [Czarnewski et al (2019) Nat Communications](https://www.nature.com/articles/s41467-019-10769-x).
+
 
 The analysis done within the paper was divided in serveral summary reports as follows. The files were generated after the initial analysis, which depend on random number for i.e. the tSNE and other functions. Seeds were added to those now. Thus some slight differences in the plots can be observed. However, the conclusions and interpretations are the same.
 
